@@ -1,0 +1,76 @@
+# =============================================================================
+# YouTube Shorts AI Agent — .gitignore
+# =============================================================================
+
+# --- Python -------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.egg
+*.egg-info/
+dist/
+build/
+eggs/
+*.whl
+pip-log.txt
+pip-delete-this-directory.txt
+
+# --- Virtual Environments -----------------------------------------------------
+.venv/
+venv/
+ENV/
+env/
+
+# --- Environment Variables (secrets) ------------------------------------------
+.env
+.env.local
+.env.production
+
+# --- IDE / Editor -------------------------------------------------------------
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# --- Testing ------------------------------------------------------------------
+.pytest_cache/
+htmlcov/
+.coverage
+.coverage.*
+coverage.xml
+*.cover
+
+# --- mypy / type checking -----------------------------------------------------
+.mypy_cache/
+.dmypy.json
+dmypy.json
+
+# --- Docker -------------------------------------------------------------------
+docker-compose.override.yml
+
+# --- OS -----------------------------------------------------------------------
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# --- Logs ---------------------------------------------------------------------
+*.log
+logs/
+
+# --- Database migrations (auto-generated) -------------------------------------
+# Keep alembic/versions/ tracked, but ignore local SQLite files
+*.sqlite3
+*.db
+
+# --- Celery -------------------------------------------------------------------
+celerybeat-schedule
+celerybeat.pid
+
+# --- Misc ---------------------------------------------------------------------
+*.bak
+*.tmp
+*.temp

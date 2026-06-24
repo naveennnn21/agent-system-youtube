@@ -1,0 +1,92 @@
+# =============================================================================
+# YouTube Shorts AI Agent — Docker Compose
+# =============================================================================
+# Services:
+#   app   — FastAPI application (builds from Dockerfile)
+#   db    — PostgreSQL 16 (Alpine)
+#   redis — Redis 7 (Alpine)
+# =============================================================================
+
+services:
+  # ---------------------------------------------------------------------------
+  # FastAPI Application
+  # ---------------------------------------------------------------------------
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: youtube_shorts_agent_app
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    volumes:
+      - .:/home/appuser/app        # hot-reload during development
+    restart: unless-stopped
+    networks:
+      - agent-network
+
+  # ---------------------------------------------------------------------------
+  # PostgreSQL 16
+  # ---------------------------------------------------------------------------
+  db:
+    image: postgres:16-alpine
+    container_name: youtube_shorts_agent_db
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: youtube_shorts_agent
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d youtube_shorts_agent"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - agent-network
+
+  # ---------------------------------------------------------------------------
+  # Redis 7
+  # ---------------------------------------------------------------------------
+  redis:
+    image: redis:7-alpine
+    container_name: youtube_shorts_agent_redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - agent-network
+
+# -----------------------------------------------------------------------------
+# Named Volumes
+# -----------------------------------------------------------------------------
+volumes:
+  postgres_data:
+    driver: local
+  redis_data:
+    driver: local
+
+# -----------------------------------------------------------------------------
+# Networks
+# -----------------------------------------------------------------------------
+networks:
+  agent-network:
+    driver: bridge

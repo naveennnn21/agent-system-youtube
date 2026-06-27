@@ -13,7 +13,7 @@ from __future__ import annotations
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import field_validator, PostgresDsn, RedisDsn
+from pydantic import Field, field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -34,10 +34,14 @@ class Settings(BaseSettings):
 
     # -- Database (sync — used by Alembic migrations) --------------------------
     DATABASE_SYNC_URL: str = "postgresql://postgres:postgres@db:5432/youtube_shorts_agent"
+    DB_POOL_SIZE: int = Field(default=20, ge=1)
+    DB_MAX_OVERFLOW: int = Field(default=10, ge=0)
+    DB_POOL_TIMEOUT: int = Field(default=30, ge=1)
+    DB_POOL_RECYCLE: int = Field(default=1800, ge=1)
 
     # -- Redis -----------------------------------------------------------------
     REDIS_URL: str = "redis://redis:6379/0"
-    REDIS_MAX_CONNECTIONS: int = 20
+    REDIS_MAX_CONNECTIONS: int = Field(default=20, ge=1)
 
     # -- External API Keys -----------------------------------------------------
     OPENAI_API_KEY: str = ""
@@ -88,13 +92,23 @@ class Settings(BaseSettings):
     @field_validator("DATABASE_URL")
     @classmethod
     def validate_database_url(cls, v: str) -> str:
-        """Basic check: the async DB URL must use the asyncpg driver."""
-        if "asyncpg" not in v:
+        """Require a non-empty PostgreSQL URL using the asyncpg driver."""
+        value = v.strip()
+        if not value.startswith("postgresql+asyncpg://"):
             raise ValueError(
                 "DATABASE_URL must use the 'asyncpg' driver "
                 "(e.g. postgresql+asyncpg://...)"
             )
-        return v
+        return value
+
+    @field_validator("DATABASE_SYNC_URL")
+    @classmethod
+    def validate_database_sync_url(cls, v: str) -> str:
+        """Require a non-empty synchronous PostgreSQL URL."""
+        value = v.strip()
+        if not value.startswith(("postgresql://", "postgresql+psycopg://")):
+            raise ValueError("DATABASE_SYNC_URL must be a PostgreSQL URL")
+        return value
 
     # -- Convenience properties ------------------------------------------------
 

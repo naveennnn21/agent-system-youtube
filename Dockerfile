@@ -12,14 +12,12 @@ FROM python:3.12-slim AS builder
 
 # Prevent Python from writing .pyc files and enable unbuffered stdout/stderr
 ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1
+    PYTHONUNBUFFERED=1 \
+    PIP_DISABLE_PIP_VERSION_CHECK=1 \
+    PIP_DEFAULT_TIMEOUT=120 \
+    PIP_RETRIES=5
 
 WORKDIR /build
-
-# Install system-level build dependencies required by some Python packages
-RUN apt-get update && \
-    apt-get install -y --no-install-recommends gcc libpq-dev && \
-    rm -rf /var/lib/apt/lists/*
 
 # Create a virtual-env so we can cleanly copy it to the runtime stage
 RUN python -m venv /opt/venv
@@ -27,8 +25,13 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 # Install Python dependencies (layer cached unless requirements.txt changes)
 COPY requirements.txt .
-RUN pip install --no-cache-dir --upgrade pip setuptools wheel && \
-    pip install --no-cache-dir -r requirements.txt
+RUN --mount=type=cache,target=/root/.cache/pip \
+    python -m pip install --upgrade pip setuptools wheel && \
+    for attempt in 1 2 3; do \
+        python -m pip install --prefer-binary -r requirements.txt && break; \
+        if [ "$attempt" = "3" ]; then exit 1; fi; \
+        sleep 5; \
+    done
 
 # ---------------------------------------------------------------------------
 # Stage 2 — Runtime
@@ -42,11 +45,12 @@ LABEL maintainer="Naveen Valasani" \
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
+    PYTHONPATH="/home/appuser/app" \
     PATH="/opt/venv/bin:$PATH"
 
 # Install only the runtime libraries (no compilers)
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends libpq5 curl && \
+    apt-get install -y --no-install-recommends curl && \
     rm -rf /var/lib/apt/lists/*
 
 # Create a non-root user for security
@@ -58,10 +62,13 @@ WORKDIR /home/appuser/app
 # Copy the pre-built virtual-env from the builder stage
 COPY --from=builder /opt/venv /opt/venv
 
-# Copy application source code
-COPY --chown=appuser:appuser . .
+# Copy only files needed at runtime.
+COPY --chown=appuser:appuser app ./app
+COPY --chown=appuser:appuser alembic ./alembic
+COPY --chown=appuser:appuser alembic.ini .
 
 # Switch to non-root user
+RUN chmod -R u+rwX app alembic alembic.ini
 USER appuser
 
 # Expose the API port

@@ -10,7 +10,6 @@ from __future__ import annotations
 import logging
 from typing import AsyncGenerator
 
-import redis.asyncio as aioredis
 from redis.asyncio import ConnectionPool, Redis
 
 from app.core.config import get_settings

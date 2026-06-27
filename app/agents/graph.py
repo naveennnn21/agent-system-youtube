@@ -18,7 +18,7 @@ from __future__ import annotations
 import logging
 from typing import Any, TypedDict
 
-from langchain_core.messages import AIMessage, BaseMessage, HumanMessage
+from langchain_core.messages import AIMessage, BaseMessage
 from langgraph.graph import END, StateGraph
 
 logger = logging.getLogger(__name__)

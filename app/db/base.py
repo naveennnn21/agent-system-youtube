@@ -61,16 +61,13 @@ class BaseModel(Base):
         primary_key=True,
         default=uuid.uuid4,
         server_default=func.gen_random_uuid(),
-        index=True,
         nullable=False,
-        comment="Primary key — UUID v4",
     )
 
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         server_default=func.now(),
         nullable=False,
-        comment="Row creation timestamp (UTC)",
     )
 
     updated_at: Mapped[datetime] = mapped_column(
@@ -78,7 +75,6 @@ class BaseModel(Base):
         server_default=func.now(),
         onupdate=func.now(),
         nullable=False,
-        comment="Last modification timestamp (UTC)",
     )
 
     def __repr__(self) -> str:

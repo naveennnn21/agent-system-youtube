@@ -80,8 +80,13 @@ async def async_session() -> AsyncGenerator[AsyncSession, None]:
 
 
 @pytest.fixture(autouse=True)
-def _override_db_dependency(async_session):
+def _override_db_dependency(request):
     """Swap the production DB dependency with the test session."""
+    if request.node.get_closest_marker("no_db"):
+        yield
+        return
+
+    async_session = request.getfixturevalue("async_session")
 
     async def _get_test_session():
         yield async_session

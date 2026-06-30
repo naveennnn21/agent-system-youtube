@@ -18,6 +18,8 @@ services:
     container_name: youtube_shorts_agent_app
     ports:
       - "8000:8000"
+    volumes:
+      - media_storage:/home/appuser/app/storage
     env_file:
       - path: .env
         required: false
@@ -93,6 +95,8 @@ volumes:
   postgres_data:
     driver: local
   redis_data:
+    driver: local
+  media_storage:
     driver: local
 
 # -----------------------------------------------------------------------------

@@ -50,7 +50,7 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 # Install only the runtime libraries (no compilers)
 RUN apt-get update && \
-    apt-get install -y --no-install-recommends curl && \
+    apt-get install -y --no-install-recommends curl ffmpeg && \
     rm -rf /var/lib/apt/lists/*
 
 # Create a non-root user for security
@@ -67,8 +67,10 @@ COPY --chown=appuser:appuser app ./app
 COPY --chown=appuser:appuser alembic ./alembic
 COPY --chown=appuser:appuser alembic.ini .
 
-# Switch to non-root user
-RUN chmod -R u+rwX app alembic alembic.ini
+# Prepare writable, persistent media storage before switching to non-root.
+RUN mkdir -p storage && \
+    chown appuser:appuser storage && \
+    chmod -R u+rwX app alembic alembic.ini
 USER appuser
 
 # Expose the API port

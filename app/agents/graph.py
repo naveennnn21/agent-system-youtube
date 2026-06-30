@@ -16,10 +16,16 @@ into a runnable that can be invoked with::
 from __future__ import annotations
 
 import logging
+from dataclasses import asdict
 from typing import Any, TypedDict
 
 from langchain_core.messages import AIMessage, BaseMessage
 from langgraph.graph import END, StateGraph
+
+from app.agents.script_generation import ScriptGenerationAgent
+from app.agents.trend_research import TrendResearchAgent
+from app.core.config import get_settings
+from app.services.script_generation import ScriptGenerationRequest
 
 logger = logging.getLogger(__name__)
 
@@ -43,7 +49,8 @@ class AgentState(TypedDict, total=False):
     current_step: str
     metadata: dict[str, Any]
     research_results: dict[str, Any]
-    script_draft: str
+    script_draft: str | dict[str, str]
+    script_evaluation: dict[str, Any]
     review_feedback: dict[str, Any]
 
 
@@ -57,10 +64,28 @@ async def research_node(state: AgentState) -> dict:
     """
     logger.info("research_node — starting topic research …")
 
-    topic = state.get("metadata", {}).get("topic", "AI technology")
+    metadata = state.get("metadata", {})
+    category = metadata.get("category")
+    limit = int(metadata.get("trend_limit", 5))
+
+    agent = metadata.get("trend_agent") or TrendResearchAgent.from_settings()
+    trending_topics = await agent.fetch_trending_topics(
+        category=category,
+        limit=limit,
+    )
+    topic = metadata.get("topic") or (
+        trending_topics[0]["topic"] if trending_topics else "AI technology"
+    )
+    trending_keywords = [
+        keyword
+        for trend in trending_topics
+        for keyword in trend.get("keywords", [])
+    ]
     research_results = {
         "topic": topic,
-        "trending_keywords": [
+        "trending_topics": trending_topics,
+        "trending_keywords": trending_keywords
+        or [
             f"{topic} explained",
             f"{topic} in 60 seconds",
             f"{topic} for beginners",
@@ -85,8 +110,35 @@ async def script_node(state: AgentState) -> dict:
     """
     logger.info("script_node — drafting script …")
 
+    settings = get_settings()
+    metadata = state.get("metadata", {})
     research = state.get("research_results", {})
     topic = research.get("topic", "unknown")
+    script_agent = metadata.get("script_agent")
+
+    if script_agent is not None or settings.ANTHROPIC_API_KEY:
+        agent = script_agent or ScriptGenerationAgent.from_settings(settings)
+        request = ScriptGenerationRequest(
+            topic=topic,
+            category=metadata.get("category", "general"),
+            keywords=research.get("trending_keywords", [])[:10],
+            target_seconds=int(
+                metadata.get("script_target_seconds", settings.SCRIPT_TARGET_SECONDS)
+            ),
+            audience=metadata.get("audience", "curious general viewers"),
+            tone=metadata.get("tone", "energetic, clear, and credible"),
+            research_context=research,
+        )
+        result = await agent.generate(request)
+        generated_script = result.draft.to_dict()
+
+        return {
+            "current_step": "script",
+            "script_draft": generated_script,
+            "script_evaluation": asdict(result.evaluation),
+            "messages": state.get("messages", [])
+            + [AIMessage(content="Claude script draft created.")],
+        }
 
     script_draft = (
         f"🎬 YOUTUBE SHORT SCRIPT — {topic.upper()}\n"
@@ -116,7 +168,14 @@ async def review_node(state: AgentState) -> dict:
     """
     logger.info("review_node — reviewing script draft …")
 
-    script = state.get("script_draft", "")
+    script_value = state.get("script_draft", "")
+    if isinstance(script_value, dict):
+        script = " ".join(
+            script_value.get(part, "")
+            for part in ("hook", "script", "cta")
+        )
+    else:
+        script = script_value
 
     review_feedback = {
         "approved": True,

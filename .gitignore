@@ -26,6 +26,7 @@ env/
 .env
 .env.local
 .env.production
+credentials/
 
 # --- IDE / Editor -------------------------------------------------------------
 .vscode/
@@ -48,6 +49,13 @@ coverage.xml
 .mypy_cache/
 .dmypy.json
 dmypy.json
+
+# --- Frontend -----------------------------------------------------------------
+frontend/node_modules/
+frontend/dist/
+frontend/*.tsbuildinfo
+frontend/vite.config.js
+frontend/vite.config.d.ts
 
 # --- Docker -------------------------------------------------------------------
 docker-compose.override.yml
@@ -77,3 +85,4 @@ celerybeat.pid
 *.bak
 *.tmp
 *.temp
+*.bundle

@@ -45,6 +45,96 @@ services:
       - agent-network
 
   # ---------------------------------------------------------------------------
+  # Celery Worker
+  # ---------------------------------------------------------------------------
+  celery_worker:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: youtube_shorts_agent_celery_worker
+    command:
+      [
+        "celery",
+        "-A",
+        "app.automation.celery_app:celery_app",
+        "worker",
+        "--loglevel=INFO",
+        "--queues=automation,shorts,analytics,notifications",
+        "--concurrency=${CELERY_WORKER_CONCURRENCY:-2}"
+      ]
+    volumes:
+      - media_storage:/home/appuser/app/storage
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-youtube_shorts_agent}
+      DATABASE_SYNC_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-youtube_shorts_agent}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A app.automation.celery_app:celery_app inspect ping -t 5 >/tmp/celery-health.log 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    restart: unless-stopped
+    networks:
+      - agent-network
+
+  # ---------------------------------------------------------------------------
+  # Celery Beat Scheduler
+  # ---------------------------------------------------------------------------
+  celery_beat:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: youtube_shorts_agent_celery_beat
+    command:
+      [
+        "celery",
+        "-A",
+        "app.automation.celery_app:celery_app",
+        "beat",
+        "--loglevel=INFO",
+        "--schedule=/home/appuser/app/celerybeat/celerybeat-schedule"
+      ]
+    volumes:
+      - media_storage:/home/appuser/app/storage
+      - celery_beat_data:/home/appuser/app/celerybeat
+    env_file:
+      - path: .env
+        required: false
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-youtube_shorts_agent}
+      DATABASE_SYNC_URL: postgresql://${POSTGRES_USER:-postgres}:${POSTGRES_PASSWORD:-postgres}@db:5432/${POSTGRES_DB:-youtube_shorts_agent}
+      REDIS_URL: redis://redis:6379/0
+      CELERY_BROKER_URL: redis://redis:6379/1
+      CELERY_RESULT_BACKEND: redis://redis:6379/2
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      celery_worker:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import os; assert os.access('/home/appuser/app/celerybeat', os.W_OK)\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 15s
+    restart: unless-stopped
+    networks:
+      - agent-network
+
+  # ---------------------------------------------------------------------------
   # PostgreSQL 16
   # ---------------------------------------------------------------------------
   db:
@@ -97,6 +187,8 @@ volumes:
   redis_data:
     driver: local
   media_storage:
+    driver: local
+  celery_beat_data:
     driver: local
 
 # -----------------------------------------------------------------------------

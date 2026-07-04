@@ -57,3 +57,20 @@ class UploadsRepository(AsyncRepository[Upload]):
             filters=(Upload.status == status,),
             order_by=desc(Upload.created_at),
         )
+
+    async def list_successful_youtube_uploads(
+        self,
+        *,
+        offset: int = 0,
+        limit: int = 100,
+    ) -> list[Upload]:
+        return await self.list(
+            offset=offset,
+            limit=limit,
+            filters=(
+                Upload.platform == UploadPlatform.YOUTUBE_SHORTS,
+                Upload.status == UploadStatus.SUCCEEDED,
+                Upload.external_video_id.is_not(None),
+            ),
+            order_by=desc(Upload.uploaded_at),
+        )

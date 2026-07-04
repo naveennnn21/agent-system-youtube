@@ -16,6 +16,7 @@ alembic==1.16.2
 
 # --- Cache / Message Broker ---------------------------------------------------
 redis[hiredis]==5.2.1
+celery[redis]==5.6.3
 
 # --- Data Validation & Settings -----------------------------------------------
 pydantic==2.11.4

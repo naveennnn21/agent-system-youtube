@@ -64,6 +64,53 @@ class Settings(BaseSettings):
     SEO_MAX_KEYWORDS: int = Field(default=20, ge=5, le=50)
     SEO_MIN_OVERALL_SCORE: float = Field(default=60.0, ge=0, le=100)
 
+    # -- YouTube upload --------------------------------------------------------
+    YOUTUBE_OAUTH_CLIENT_ID: str = ""
+    YOUTUBE_OAUTH_CLIENT_SECRET: str = ""
+    YOUTUBE_OAUTH_REFRESH_TOKEN: str = ""
+    YOUTUBE_OAUTH_TOKEN_URI: str = "https://oauth2.googleapis.com/token"
+    YOUTUBE_UPLOAD_SCOPE: str = "https://www.googleapis.com/auth/youtube.upload"
+    YOUTUBE_API_BASE_URL: str = "https://www.googleapis.com"
+    YOUTUBE_UPLOAD_BASE_URL: str = "https://www.googleapis.com/upload/youtube/v3"
+    YOUTUBE_WATCH_URL_TEMPLATE: str = "https://www.youtube.com/watch?v={video_id}"
+    YOUTUBE_UPLOAD_TIMEOUT: float = Field(default=120.0, gt=0)
+    YOUTUBE_DEFAULT_CATEGORY_ID: str = "22"
+    YOUTUBE_DEFAULT_PRIVACY_STATUS: Literal["private", "public", "unlisted"] = "private"
+    YOUTUBE_NOTIFY_SUBSCRIBERS: bool = False
+    YOUTUBE_SELF_DECLARED_MADE_FOR_KIDS: bool = False
+    YOUTUBE_CONTAINS_SYNTHETIC_MEDIA: bool = True
+
+    # -- Learning agent --------------------------------------------------------
+    LEARNING_LOOKBACK_DAYS: int = Field(default=90, ge=1, le=730)
+    LEARNING_TOP_N: int = Field(default=5, ge=1, le=50)
+    LEARNING_MAX_SAMPLES: int = Field(default=500, ge=10, le=5000)
+    LEARNING_MIN_VIEWS: int = Field(default=100, ge=0)
+    LEARNING_MODEL_VERSION: str = "learning-agent-v1"
+
+    # -- Analytics agent -------------------------------------------------------
+    YOUTUBE_ANALYTICS_BASE_URL: str = "https://youtubeanalytics.googleapis.com/v2"
+    YOUTUBE_ANALYTICS_SCOPE: str = "https://www.googleapis.com/auth/yt-analytics.readonly"
+    YOUTUBE_ANALYTICS_IDS: str = "channel==MINE"
+    YOUTUBE_ANALYTICS_METRICS: list[str] = [
+        "views",
+        "estimatedMinutesWatched",
+        "averageViewDuration",
+        "averageViewPercentage",
+        "subscribersGained",
+        "likes",
+        "comments",
+        "shares",
+        "annotationClickThroughRate",
+    ]
+    YOUTUBE_ANALYTICS_LOOKBACK_DAYS: int = Field(default=7, ge=1, le=365)
+    YOUTUBE_ANALYTICS_COLLECTION_LIMIT: int = Field(default=100, ge=1, le=500)
+    YOUTUBE_ANALYTICS_HTTP_TIMEOUT: float = Field(default=60.0, gt=0)
+
+    # -- Workflow --------------------------------------------------------------
+    WORKFLOW_RETRY_ATTEMPTS: int = Field(default=3, ge=1, le=10)
+    WORKFLOW_RETRY_BASE_DELAY: float = Field(default=0.5, ge=0)
+    WORKFLOW_RETRY_MAX_DELAY: float = Field(default=5.0, ge=0)
+
     # -- Voice generation ------------------------------------------------------
     AUDIO_STORAGE_PATH: str = "storage/audio"
     ELEVENLABS_BASE_URL: str = "https://api.elevenlabs.io"
@@ -142,6 +189,38 @@ class Settings(BaseSettings):
     # -- Celery ----------------------------------------------------------------
     CELERY_BROKER_URL: str = "redis://redis:6379/1"
     CELERY_RESULT_BACKEND: str = "redis://redis:6379/2"
+    CELERY_TIMEZONE: str = "UTC"
+    CELERY_ENABLE_UTC: bool = True
+    CELERY_TASK_ALWAYS_EAGER: bool = False
+    CELERY_TASK_EAGER_PROPAGATES: bool = True
+    CELERY_TASK_TRACK_STARTED: bool = True
+    CELERY_WORKER_PREFETCH_MULTIPLIER: int = Field(default=1, ge=1, le=128)
+    CELERY_WORKER_CONCURRENCY: int = Field(default=2, ge=1, le=16)
+    CELERY_TASK_MAX_RETRIES: int = Field(default=3, ge=0, le=20)
+    CELERY_TASK_RETRY_BACKOFF: int = Field(default=60, ge=1, le=3600)
+    CELERY_TASK_RETRY_BACKOFF_MAX: int = Field(default=600, ge=1, le=86400)
+    CELERY_TASK_SOFT_TIME_LIMIT: int = Field(default=6900, ge=60)
+    CELERY_TASK_TIME_LIMIT: int = Field(default=7200, ge=60)
+
+    # -- Automation ------------------------------------------------------------
+    AUTOMATION_DAILY_SHORTS_COUNT: int = Field(default=3, ge=1, le=24)
+    AUTOMATION_DAILY_CRON_HOUR: int = Field(default=9, ge=0, le=23)
+    AUTOMATION_DAILY_CRON_MINUTE: int = Field(default=0, ge=0, le=59)
+    AUTOMATION_SHORT_SPACING_MINUTES: int = Field(default=20, ge=0, le=240)
+    AUTOMATION_DEFAULT_CATEGORY: str = "technology"
+    AUTOMATION_AUTOSTART_QUEUE: str = "automation"
+    AUTOMATION_SHORTS_QUEUE: str = "shorts"
+    AUTOMATION_ANALYTICS_QUEUE: str = "analytics"
+    AUTOMATION_NOTIFICATIONS_QUEUE: str = "notifications"
+    AUTOMATION_QUEUE_NAMES: list[str] = [
+        "automation",
+        "shorts",
+        "analytics",
+        "notifications",
+    ]
+    NOTIFICATIONS_ENABLED: bool = True
+    NOTIFICATION_WEBHOOK_URL: str = ""
+    NOTIFICATION_WEBHOOK_TIMEOUT: float = Field(default=10.0, gt=0)
 
     # -- Pydantic-settings configuration ---------------------------------------
     model_config = SettingsConfigDict(

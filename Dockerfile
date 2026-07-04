@@ -68,9 +68,9 @@ COPY --chown=appuser:appuser alembic ./alembic
 COPY --chown=appuser:appuser alembic.ini .
 
 # Prepare writable, persistent media storage before switching to non-root.
-RUN mkdir -p storage && \
-    chown appuser:appuser storage && \
-    chmod -R u+rwX app alembic alembic.ini
+RUN mkdir -p storage celerybeat && \
+    chown appuser:appuser storage celerybeat && \
+    chmod -R u+rwX app alembic alembic.ini celerybeat
 USER appuser
 
 # Expose the API port

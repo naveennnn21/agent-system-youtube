@@ -1,0 +1,44 @@
+{
+  "family": "youtube-shorts-agent-beat",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::ACCOUNT_ID:role/youtube-shorts-agent-ecs-execution",
+  "taskRoleArn": "arn:aws:iam::ACCOUNT_ID:role/youtube-shorts-agent-task",
+  "containerDefinitions": [
+    {
+      "name": "celery-beat",
+      "image": "REPLACE_API_IMAGE",
+      "essential": true,
+      "command": [
+        "celery",
+        "-A",
+        "app.automation.celery_app:celery_app",
+        "beat",
+        "--loglevel=INFO",
+        "--schedule=/tmp/celerybeat-schedule"
+      ],
+      "environment": [
+        { "name": "APP_ENV", "value": "production" },
+        { "name": "DEBUG", "value": "false" },
+        { "name": "LOG_LEVEL", "value": "INFO" }
+      ],
+      "secrets": [
+        { "name": "DATABASE_URL", "valueFrom": "/youtube-shorts-agent/DATABASE_URL" },
+        { "name": "DATABASE_SYNC_URL", "valueFrom": "/youtube-shorts-agent/DATABASE_SYNC_URL" },
+        { "name": "REDIS_URL", "valueFrom": "/youtube-shorts-agent/REDIS_URL" },
+        { "name": "CELERY_BROKER_URL", "valueFrom": "/youtube-shorts-agent/CELERY_BROKER_URL" },
+        { "name": "CELERY_RESULT_BACKEND", "valueFrom": "/youtube-shorts-agent/CELERY_RESULT_BACKEND" }
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/youtube-shorts-agent",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "beat"
+        }
+      }
+    }
+  ]
+}

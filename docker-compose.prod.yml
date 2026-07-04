@@ -1,0 +1,158 @@
+services:
+  app:
+    image: ${API_IMAGE:-youtube-shorts-agent-api:latest}
+    container_name: youtube_shorts_agent_app
+    ports:
+      - "${API_PORT:-8000}:8000"
+    volumes:
+      - media_storage:/home/appuser/app/storage
+    env_file:
+      - .env.production
+    environment:
+      DATABASE_URL: ${DATABASE_URL}
+      DATABASE_SYNC_URL: ${DATABASE_SYNC_URL}
+      REDIS_URL: ${REDIS_URL}
+      CELERY_BROKER_URL: ${CELERY_BROKER_URL}
+      CELERY_RESULT_BACKEND: ${CELERY_RESULT_BACKEND}
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - agent-network
+
+  dashboard:
+    image: ${DASHBOARD_IMAGE:-youtube-shorts-agent-dashboard:latest}
+    container_name: youtube_shorts_agent_dashboard
+    ports:
+      - "${DASHBOARD_PORT:-3000}:80"
+    depends_on:
+      app:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost/ >/dev/null || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - agent-network
+
+  celery_worker:
+    image: ${API_IMAGE:-youtube-shorts-agent-api:latest}
+    container_name: youtube_shorts_agent_celery_worker
+    command:
+      [
+        "celery",
+        "-A",
+        "app.automation.celery_app:celery_app",
+        "worker",
+        "--loglevel=INFO",
+        "--queues=automation,shorts,analytics,notifications",
+        "--concurrency=${CELERY_WORKER_CONCURRENCY:-4}"
+      ]
+    volumes:
+      - media_storage:/home/appuser/app/storage
+    env_file:
+      - .env.production
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD-SHELL", "celery -A app.automation.celery_app:celery_app inspect ping -t 5 >/tmp/celery-health.log 2>&1 || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    restart: unless-stopped
+    networks:
+      - agent-network
+
+  celery_beat:
+    image: ${API_IMAGE:-youtube-shorts-agent-api:latest}
+    container_name: youtube_shorts_agent_celery_beat
+    command:
+      [
+        "celery",
+        "-A",
+        "app.automation.celery_app:celery_app",
+        "beat",
+        "--loglevel=INFO",
+        "--schedule=/home/appuser/app/celerybeat/celerybeat-schedule"
+      ]
+    volumes:
+      - media_storage:/home/appuser/app/storage
+      - celery_beat_data:/home/appuser/app/celerybeat
+    env_file:
+      - .env.production
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      celery_worker:
+        condition: service_started
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import os; assert os.access('/home/appuser/app/celerybeat', os.W_OK)\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 20s
+    restart: unless-stopped
+    networks:
+      - agent-network
+
+  db:
+    image: postgres:16-alpine
+    container_name: youtube_shorts_agent_db
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    restart: unless-stopped
+    networks:
+      - agent-network
+
+  redis:
+    image: redis:7-alpine
+    container_name: youtube_shorts_agent_redis
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 5s
+    restart: unless-stopped
+    networks:
+      - agent-network
+
+volumes:
+  postgres_data:
+  redis_data:
+  media_storage:
+  celery_beat_data:
+
+networks:
+  agent-network:
+    driver: bridge

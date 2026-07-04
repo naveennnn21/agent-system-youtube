@@ -1,0 +1,144 @@
+databases:
+  - name: youtube-shorts-postgres
+    databaseName: youtube_shorts_agent
+    user: youtube_agent
+    plan: starter
+
+services:
+  - type: redis
+    name: youtube-shorts-redis
+    plan: starter
+    ipAllowList: []
+
+  - type: web
+    name: youtube-shorts-api
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: LOG_LEVEL
+        value: INFO
+      - key: DATABASE_SYNC_URL
+        fromDatabase:
+          name: youtube-shorts-postgres
+          property: connectionString
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: youtube-shorts-redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: youtube-shorts-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: youtube-shorts-redis
+          property: connectionString
+      - key: CORS_ORIGINS
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: FLUX_API_KEY
+        sync: false
+      - key: STABILITY_API_KEY
+        sync: false
+      - key: YOUTUBE_API_KEY
+        sync: false
+      - key: YOUTUBE_OAUTH_CLIENT_ID
+        sync: false
+      - key: YOUTUBE_OAUTH_CLIENT_SECRET
+        sync: false
+      - key: YOUTUBE_OAUTH_REFRESH_TOKEN
+        sync: false
+
+  - type: worker
+    name: youtube-shorts-worker
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerCommand: celery -A app.automation.celery_app:celery_app worker --loglevel=INFO --queues=automation,shorts,analytics,notifications --concurrency=2
+    plan: starter
+    envVars:
+      - fromGroup: youtube-shorts-shared
+
+  - type: worker
+    name: youtube-shorts-beat
+    runtime: docker
+    dockerfilePath: ./Dockerfile
+    dockerCommand: celery -A app.automation.celery_app:celery_app beat --loglevel=INFO --schedule=/tmp/celerybeat-schedule
+    plan: starter
+    envVars:
+      - fromGroup: youtube-shorts-shared
+
+  - type: web
+    name: youtube-shorts-dashboard
+    runtime: docker
+    rootDir: frontend
+    dockerfilePath: ./Dockerfile
+    plan: starter
+    healthCheckPath: /
+    envVars:
+      - key: VITE_API_BASE_URL
+        sync: false
+
+envVarGroups:
+  - name: youtube-shorts-shared
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: DEBUG
+        value: "false"
+      - key: LOG_LEVEL
+        value: INFO
+      - key: DATABASE_SYNC_URL
+        fromDatabase:
+          name: youtube-shorts-postgres
+          property: connectionString
+      - key: DATABASE_URL
+        sync: false
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: youtube-shorts-redis
+          property: connectionString
+      - key: CELERY_BROKER_URL
+        fromService:
+          type: redis
+          name: youtube-shorts-redis
+          property: connectionString
+      - key: CELERY_RESULT_BACKEND
+        fromService:
+          type: redis
+          name: youtube-shorts-redis
+          property: connectionString
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: ANTHROPIC_API_KEY
+        sync: false
+      - key: ELEVENLABS_API_KEY
+        sync: false
+      - key: FLUX_API_KEY
+        sync: false
+      - key: STABILITY_API_KEY
+        sync: false
+      - key: YOUTUBE_API_KEY
+        sync: false
+      - key: YOUTUBE_OAUTH_CLIENT_ID
+        sync: false
+      - key: YOUTUBE_OAUTH_CLIENT_SECRET
+        sync: false
+      - key: YOUTUBE_OAUTH_REFRESH_TOKEN
+        sync: false

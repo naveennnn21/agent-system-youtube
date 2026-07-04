@@ -1,0 +1,60 @@
+{
+  "family": "youtube-shorts-agent-api",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "1024",
+  "memory": "2048",
+  "executionRoleArn": "arn:aws:iam::ACCOUNT_ID:role/youtube-shorts-agent-ecs-execution",
+  "taskRoleArn": "arn:aws:iam::ACCOUNT_ID:role/youtube-shorts-agent-task",
+  "containerDefinitions": [
+    {
+      "name": "api",
+      "image": "REPLACE_API_IMAGE",
+      "essential": true,
+      "portMappings": [
+        {
+          "containerPort": 8000,
+          "hostPort": 8000,
+          "protocol": "tcp"
+        }
+      ],
+      "environment": [
+        { "name": "APP_ENV", "value": "production" },
+        { "name": "DEBUG", "value": "false" },
+        { "name": "LOG_LEVEL", "value": "INFO" }
+      ],
+      "secrets": [
+        { "name": "DATABASE_URL", "valueFrom": "/youtube-shorts-agent/DATABASE_URL" },
+        { "name": "DATABASE_SYNC_URL", "valueFrom": "/youtube-shorts-agent/DATABASE_SYNC_URL" },
+        { "name": "REDIS_URL", "valueFrom": "/youtube-shorts-agent/REDIS_URL" },
+        { "name": "CELERY_BROKER_URL", "valueFrom": "/youtube-shorts-agent/CELERY_BROKER_URL" },
+        { "name": "CELERY_RESULT_BACKEND", "valueFrom": "/youtube-shorts-agent/CELERY_RESULT_BACKEND" },
+        { "name": "OPENAI_API_KEY", "valueFrom": "/youtube-shorts-agent/OPENAI_API_KEY" },
+        { "name": "ANTHROPIC_API_KEY", "valueFrom": "/youtube-shorts-agent/ANTHROPIC_API_KEY" },
+        { "name": "ELEVENLABS_API_KEY", "valueFrom": "/youtube-shorts-agent/ELEVENLABS_API_KEY" },
+        { "name": "FLUX_API_KEY", "valueFrom": "/youtube-shorts-agent/FLUX_API_KEY" },
+        { "name": "STABILITY_API_KEY", "valueFrom": "/youtube-shorts-agent/STABILITY_API_KEY" },
+        { "name": "YOUTUBE_API_KEY", "valueFrom": "/youtube-shorts-agent/YOUTUBE_API_KEY" },
+        { "name": "YOUTUBE_OAUTH_CLIENT_ID", "valueFrom": "/youtube-shorts-agent/YOUTUBE_OAUTH_CLIENT_ID" },
+        { "name": "YOUTUBE_OAUTH_CLIENT_SECRET", "valueFrom": "/youtube-shorts-agent/YOUTUBE_OAUTH_CLIENT_SECRET" },
+        { "name": "YOUTUBE_OAUTH_REFRESH_TOKEN", "valueFrom": "/youtube-shorts-agent/YOUTUBE_OAUTH_REFRESH_TOKEN" },
+        { "name": "CORS_ORIGINS", "valueFrom": "/youtube-shorts-agent/CORS_ORIGINS" }
+      ],
+      "healthCheck": {
+        "command": ["CMD-SHELL", "curl -f http://localhost:8000/api/v1/health || exit 1"],
+        "interval": 30,
+        "timeout": 5,
+        "retries": 3,
+        "startPeriod": 30
+      },
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/youtube-shorts-agent",
+          "awslogs-region": "us-east-1",
+          "awslogs-stream-prefix": "api"
+        }
+      }
+    }
+  ]
+}

@@ -10,6 +10,8 @@
 **/.ruff_cache
 .coverage
 htmlcov
+frontend/node_modules
+frontend/dist
 tests
 credentials
 README.md

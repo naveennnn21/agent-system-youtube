@@ -6,7 +6,11 @@ from typing import Any
 
 import httpx
 
-from app.services.voice_generation.models import AudioAsset, VoiceProfile
+from app.services.voice_generation.models import (
+    AudioAsset,
+    VoiceProfile,
+    VoiceProviderName,
+)
 
 
 class VoiceProviderError(RuntimeError):
@@ -20,7 +24,7 @@ class VoiceProviderError(RuntimeError):
 class ElevenLabsTTSClient:
     """ElevenLabs text-to-speech provider."""
 
-    provider = "elevenlabs"
+    provider: VoiceProviderName = "elevenlabs"
 
     def __init__(
         self,
@@ -85,7 +89,7 @@ class ElevenLabsTTSClient:
 class OpenAITTSClient:
     """OpenAI text-to-speech fallback provider."""
 
-    provider = "openai"
+    provider: VoiceProviderName = "openai"
 
     def __init__(
         self,

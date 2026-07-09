@@ -50,10 +50,16 @@ class SubtitleGenerator:
         for index, chunk in enumerate(chunks, start=1):
             word_count = len(_words(chunk))
             start = round(elapsed_words * seconds_per_word, 3)
-            end = round(min(duration, (elapsed_words + word_count) * seconds_per_word), 3)
+            end = round(
+                min(duration, (elapsed_words + word_count) * seconds_per_word), 3
+            )
             if index == len(chunks):
                 end = round(duration, 3)
-            cues.append(SubtitleCue(index=index, start_seconds=start, end_seconds=end, text=chunk))
+            cues.append(
+                SubtitleCue(
+                    index=index, start_seconds=start, end_seconds=end, text=chunk
+                )
+            )
             elapsed_words += word_count
         return cues
 

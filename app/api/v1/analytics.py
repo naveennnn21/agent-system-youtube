@@ -66,12 +66,16 @@ async def analytics_report(
         end_date=end,
         limit=5000,
     )
-    return AnalyticsReporter().build_report(
-        records,
-        start_date=start,
-        end_date=end,
-        top_n=top_n,
-    ).to_dict()
+    return (
+        AnalyticsReporter()
+        .build_report(
+            records,
+            start_date=start,
+            end_date=end,
+            top_n=top_n,
+        )
+        .to_dict()
+    )
 
 
 @router.get("/top-videos", response_model=list[dict])
@@ -115,9 +119,7 @@ def _metric_response(record) -> dict:
             else None
         ),
         "retention_rate": (
-            float(record.retention_rate)
-            if record.retention_rate is not None
-            else None
+            float(record.retention_rate) if record.retention_rate is not None else None
         ),
         "click_through_rate": (
             float(record.click_through_rate)

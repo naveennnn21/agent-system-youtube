@@ -52,7 +52,9 @@ def client() -> Generator[TestClient, None, None]:
 
 _settings = get_settings()
 
-TEST_DATABASE_URL = _settings.DATABASE_URL  # Override for a dedicated test DB if desired.
+TEST_DATABASE_URL = (
+    _settings.DATABASE_URL
+)  # Override for a dedicated test DB if desired.
 
 _test_engine = create_async_engine(
     TEST_DATABASE_URL,

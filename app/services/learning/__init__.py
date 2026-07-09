@@ -1,6 +1,10 @@
 """Learning and recommendation service package."""
 
-from app.services.learning.analysis import LearningAnalyzer, classify_format, hook_pattern
+from app.services.learning.analysis import (
+    LearningAnalyzer,
+    classify_format,
+    hook_pattern,
+)
 from app.services.learning.models import (
     ContentPerformanceSample,
     ContentRecommendations,

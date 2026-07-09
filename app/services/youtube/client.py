@@ -47,16 +47,24 @@ class YouTubeDataAPIClient:
         headers = {"Authorization": f"{token.token_type} {token.access_token}"}
 
         if self._client is not None:
-            session_url = await self._start_resumable_session(request, headers, self._client)
-            payload = await self._upload_file(request, headers, session_url, self._client)
+            session_url = await self._start_resumable_session(
+                request, headers, self._client
+            )
+            payload = await self._upload_file(
+                request, headers, session_url, self._client
+            )
         else:
             async with httpx.AsyncClient(timeout=self.timeout) as client:
-                session_url = await self._start_resumable_session(request, headers, client)
+                session_url = await self._start_resumable_session(
+                    request, headers, client
+                )
                 payload = await self._upload_file(request, headers, session_url, client)
 
         video_id = payload.get("id")
         if not isinstance(video_id, str) or not video_id:
-            raise YouTubeUploadError("YouTube upload response did not include a video id.")
+            raise YouTubeUploadError(
+                "YouTube upload response did not include a video id."
+            )
 
         upload_status = (
             payload.get("status", {}).get("uploadStatus")
@@ -100,7 +108,9 @@ class YouTubeDataAPIClient:
             )
         session_url = response.headers.get("Location")
         if not session_url:
-            raise YouTubeUploadError("YouTube upload session response missing Location header.")
+            raise YouTubeUploadError(
+                "YouTube upload session response missing Location header."
+            )
         return session_url
 
     async def _upload_file(
@@ -133,7 +143,9 @@ class YouTubeDataAPIClient:
         return payload
 
 
-async def _iter_file_chunks(path, chunk_size: int = 8 * 1024 * 1024) -> AsyncIterator[bytes]:
+async def _iter_file_chunks(
+    path, chunk_size: int = 8 * 1024 * 1024
+) -> AsyncIterator[bytes]:
     with path.open("rb") as video_file:
         while True:
             chunk = await asyncio.to_thread(video_file.read, chunk_size)

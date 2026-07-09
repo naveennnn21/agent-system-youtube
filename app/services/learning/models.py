@@ -50,8 +50,12 @@ class ContentPerformanceSample:
             "topic": self.topic,
             "hook": self.hook,
             "keywords": self.keywords,
-            "published_at": self.published_at.isoformat() if self.published_at else None,
-            "scheduled_at": self.scheduled_at.isoformat() if self.scheduled_at else None,
+            "published_at": (
+                self.published_at.isoformat() if self.published_at else None
+            ),
+            "scheduled_at": (
+                self.scheduled_at.isoformat() if self.scheduled_at else None
+            ),
             "duration_seconds": self.duration_seconds,
             "aspect_ratio": self.aspect_ratio,
             "format_label": self.format_label,
@@ -141,7 +145,9 @@ class LearningAnalysisResult:
             "top_videos": [video.to_dict() for video in self.top_videos],
             "winning_hooks": [hook.to_dict() for hook in self.winning_hooks],
             "winning_topics": [topic.to_dict() for topic in self.winning_topics],
-            "winning_posting_times": [time.to_dict() for time in self.winning_posting_times],
+            "winning_posting_times": [
+                time.to_dict() for time in self.winning_posting_times
+            ],
             "best_formats": [fmt.to_dict() for fmt in self.best_formats],
             "recommendations": self.recommendations.to_dict(),
             "model_version": self.model_version,

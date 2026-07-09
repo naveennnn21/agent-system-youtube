@@ -25,7 +25,9 @@ async def collect_youtube_analytics_job(
     """
     settings = settings or get_settings()
     end = end_date or (date.today() - timedelta(days=1))
-    start = start_date or (end - timedelta(days=settings.YOUTUBE_ANALYTICS_LOOKBACK_DAYS))
+    start = start_date or (
+        end - timedelta(days=settings.YOUTUBE_ANALYTICS_LOOKBACK_DAYS)
+    )
     agent = AnalyticsAgent.from_session(session, settings)
     result = await agent.collect(
         AnalyticsCollectionRequest(

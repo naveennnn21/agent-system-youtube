@@ -72,7 +72,9 @@ class ClaudeScriptClient:
             response.raise_for_status()
         except httpx.HTTPStatusError as exc:
             detail = _extract_error_detail(exc.response)
-            raise ClaudeAPIError(f"Claude API returned {exc.response.status_code}: {detail}") from exc
+            raise ClaudeAPIError(
+                f"Claude API returned {exc.response.status_code}: {detail}"
+            ) from exc
         except httpx.HTTPError as exc:
             raise ClaudeAPIError(f"Claude API request failed: {exc}") from exc
 

@@ -23,9 +23,7 @@ def write_tone(path: Path, *, frequency: float, duration: float) -> None:
         output.setsampwidth(2)
         output.setframerate(sample_rate)
         for frame in range(frame_count):
-            sample = int(
-                8000 * math.sin(2 * math.pi * frequency * frame / sample_rate)
-            )
+            sample = int(8000 * math.sin(2 * math.pi * frequency * frame / sample_rate))
             output.writeframesraw(struct.pack("<h", sample))
 
 

@@ -158,7 +158,7 @@ class TrendScorer:
                 signal.source,
                 0.1,
             )
-        return max(counts, key=counts.get, default="general")
+        return max(counts, key=lambda category: counts[category], default="general")
 
     def _normalize_category(self, category: str | None) -> str:
         return (category or "general").strip().lower() or "general"

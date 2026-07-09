@@ -26,7 +26,9 @@ class AnalyticsReporter:
         subscribers = sum(record.subscribers_gained for record in records)
         top_videos = [
             _record_summary(record)
-            for record in sorted(records, key=lambda item: item.views, reverse=True)[:top_n]
+            for record in sorted(records, key=lambda item: item.views, reverse=True)[
+                :top_n
+            ]
         ]
         daily_totals = _daily_totals(records)
 
@@ -86,7 +88,13 @@ def _record_summary(record: Analytics) -> dict[str, Any]:
         "snapshot_date": record.snapshot_date.isoformat(),
         "views": record.views,
         "watch_time_seconds": record.watch_time_seconds,
-        "click_through_rate": float(record.click_through_rate) if record.click_through_rate is not None else None,
-        "retention_rate": float(record.retention_rate) if record.retention_rate is not None else None,
+        "click_through_rate": (
+            float(record.click_through_rate)
+            if record.click_through_rate is not None
+            else None
+        ),
+        "retention_rate": (
+            float(record.retention_rate) if record.retention_rate is not None else None
+        ),
         "subscribers_gained": record.subscribers_gained,
     }

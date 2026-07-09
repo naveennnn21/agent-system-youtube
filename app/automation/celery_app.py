@@ -40,10 +40,26 @@ celery_app.conf.update(
 
 exchange = Exchange("youtube_shorts_agent", type="direct")
 celery_app.conf.task_queues = (
-    Queue(settings.AUTOMATION_AUTOSTART_QUEUE, exchange, routing_key=settings.AUTOMATION_AUTOSTART_QUEUE),
-    Queue(settings.AUTOMATION_SHORTS_QUEUE, exchange, routing_key=settings.AUTOMATION_SHORTS_QUEUE),
-    Queue(settings.AUTOMATION_ANALYTICS_QUEUE, exchange, routing_key=settings.AUTOMATION_ANALYTICS_QUEUE),
-    Queue(settings.AUTOMATION_NOTIFICATIONS_QUEUE, exchange, routing_key=settings.AUTOMATION_NOTIFICATIONS_QUEUE),
+    Queue(
+        settings.AUTOMATION_AUTOSTART_QUEUE,
+        exchange,
+        routing_key=settings.AUTOMATION_AUTOSTART_QUEUE,
+    ),
+    Queue(
+        settings.AUTOMATION_SHORTS_QUEUE,
+        exchange,
+        routing_key=settings.AUTOMATION_SHORTS_QUEUE,
+    ),
+    Queue(
+        settings.AUTOMATION_ANALYTICS_QUEUE,
+        exchange,
+        routing_key=settings.AUTOMATION_ANALYTICS_QUEUE,
+    ),
+    Queue(
+        settings.AUTOMATION_NOTIFICATIONS_QUEUE,
+        exchange,
+        routing_key=settings.AUTOMATION_NOTIFICATIONS_QUEUE,
+    ),
 )
 
 celery_app.conf.task_routes = {

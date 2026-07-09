@@ -123,7 +123,9 @@ def parse_script_response(raw_text: str) -> ScriptDraft:
     payload = _extract_json_payload(raw_text)
     missing = {"hook", "script", "cta"} - set(payload)
     if missing:
-        raise ScriptParsingError(f"Claude script response missing keys: {sorted(missing)}")
+        raise ScriptParsingError(
+            f"Claude script response missing keys: {sorted(missing)}"
+        )
 
     hook = _clean_text(payload["hook"])
     script = _clean_text(payload["script"])
@@ -149,7 +151,9 @@ def _extract_json_payload(raw_text: str) -> dict[str, Any]:
         try:
             payload = json.loads(match.group(0))
         except json.JSONDecodeError as exc:
-            raise ScriptParsingError("Claude script response contained invalid JSON.") from exc
+            raise ScriptParsingError(
+                "Claude script response contained invalid JSON."
+            ) from exc
 
     if not isinstance(payload, dict):
         raise ScriptParsingError("Claude script response must be a JSON object.")

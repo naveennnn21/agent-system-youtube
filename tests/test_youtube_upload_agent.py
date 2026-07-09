@@ -56,7 +56,9 @@ class FakeUploadsRepository:
 
 
 class FakeUploader:
-    def __init__(self, result: YouTubeUploadResult | None = None, error: Exception | None = None) -> None:
+    def __init__(
+        self, result: YouTubeUploadResult | None = None, error: Exception | None = None
+    ) -> None:
         self.result = result or YouTubeUploadResult(
             video_id="yt123",
             video_url="https://www.youtube.com/watch?v=yt123",
@@ -114,7 +116,9 @@ async def test_oauth_refresh_posts_expected_form_and_returns_token() -> None:
         )
 
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
-        token = await GoogleOAuthClient(_credentials(), client=client).refresh_access_token()
+        token = await GoogleOAuthClient(
+            _credentials(), client=client
+        ).refresh_access_token()
 
     assert captured["url"] == "https://oauth2.googleapis.com/token"
     assert captured["content_type"] == "application/x-www-form-urlencoded"
@@ -129,7 +133,9 @@ async def test_oauth_refresh_posts_expected_form_and_returns_token() -> None:
 
 
 @pytest.mark.asyncio
-async def test_youtube_client_uploads_video_with_schedule_and_returns_contract(tmp_path) -> None:
+async def test_youtube_client_uploads_video_with_schedule_and_returns_contract(
+    tmp_path,
+) -> None:
     video_path = tmp_path / "short.mp4"
     video_path.write_bytes(b"fake-video-bytes")
     captured: dict[str, object] = {"calls": []}
@@ -137,8 +143,12 @@ async def test_youtube_client_uploads_video_with_schedule_and_returns_contract(t
     def handler(request: httpx.Request) -> httpx.Response:
         captured["calls"].append(str(request.url))
         if str(request.url) == "https://oauth2.googleapis.com/token":
-            return httpx.Response(200, json={"access_token": "access-token", "token_type": "Bearer"})
-        if str(request.url).startswith("https://www.googleapis.com/upload/youtube/v3/videos"):
+            return httpx.Response(
+                200, json={"access_token": "access-token", "token_type": "Bearer"}
+            )
+        if str(request.url).startswith(
+            "https://www.googleapis.com/upload/youtube/v3/videos"
+        ):
             captured["session_auth"] = request.headers["authorization"]
             captured["upload_length"] = request.headers["x-upload-content-length"]
             captured["upload_type"] = request.headers["x-upload-content-type"]

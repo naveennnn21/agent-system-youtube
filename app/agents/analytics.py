@@ -105,11 +105,15 @@ class AnalyticsAgent:
         request: AnalyticsCollectionRequest | None = None,
     ) -> AnalyticsCollectionResult:
         """Fetch YouTube Analytics rows and upsert them into PostgreSQL."""
-        request = request or _default_collection_request(self.collection_limit, self.metrics)
+        request = request or _default_collection_request(
+            self.collection_limit, self.metrics
+        )
         if self.collector is None:
             raise AnalyticsAgentError("collector is required for analytics collection.")
         if self.analytics_repository is None or self.uploads_repository is None:
-            raise AnalyticsAgentError("analytics and uploads repositories are required.")
+            raise AnalyticsAgentError(
+                "analytics and uploads repositories are required."
+            )
 
         uploads = await self._uploads_for_collection(request)
         uploads_by_external_id = {
@@ -124,7 +128,9 @@ class AnalyticsAgent:
                 stored_count=0,
                 skipped_count=0,
                 snapshots=[],
-                errors=["No successful YouTube uploads with external video ids were found."],
+                errors=[
+                    "No successful YouTube uploads with external video ids were found."
+                ],
             )
 
         query = YouTubeAnalyticsQuery(
@@ -192,10 +198,7 @@ class AnalyticsAgent:
         if not request.external_video_ids:
             return uploads
         requested = set(request.external_video_ids)
-        return [
-            upload for upload in uploads
-            if upload.external_video_id in requested
-        ]
+        return [upload for upload in uploads if upload.external_video_id in requested]
 
     async def _upsert_snapshot(
         self,
@@ -229,14 +232,16 @@ class AnalyticsAgent:
         }
         if existing is None:
             record = await self.analytics_repository.create(
-                video_id=upload.video_id,
-                platform=UploadPlatform.YOUTUBE_SHORTS,
-                snapshot_date=snapshot.snapshot_date,
-                **values,
+                {
+                    "video_id": upload.video_id,
+                    "platform": UploadPlatform.YOUTUBE_SHORTS,
+                    "snapshot_date": snapshot.snapshot_date,
+                    **values,
+                }
             )
             created = True
         else:
-            record = await self.analytics_repository.update(existing, **values)
+            record = await self.analytics_repository.update(existing, values)
             created = False
 
         return StoredAnalyticsSnapshot(

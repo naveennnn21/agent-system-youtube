@@ -115,10 +115,12 @@ class VoiceGenerationAgent:
                 errors.append(f"{provider_name}: provider is not configured")
                 continue
 
+            async def synthesize() -> AudioAsset:
+                return await provider.synthesize(text=text, voice=voice)
+
             try:
                 asset = await self.retry_policy.run(
-                    lambda provider=provider: provider.synthesize(text=text, voice=voice),
-                    retryable=_is_retryable_voice_error,
+                    synthesize, retryable=_is_retryable_voice_error
                 )
             except Exception as exc:
                 logger.warning("Voice provider %s failed: %s", provider_name, exc)

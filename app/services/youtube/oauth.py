@@ -85,7 +85,9 @@ class GoogleOAuthClient:
         body = response.json()
         access_token = body.get("access_token")
         if not isinstance(access_token, str) or not access_token:
-            raise YouTubeOAuthError("OAuth token response did not include access_token.")
+            raise YouTubeOAuthError(
+                "OAuth token response did not include access_token."
+            )
 
         return OAuthToken(
             access_token=access_token,

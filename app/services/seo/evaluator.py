@@ -17,7 +17,16 @@ CTR_TERMS = {
     "actually",
     "surprising",
 }
-ACTION_TERMS = {"watch", "try", "learn", "discover", "save", "share", "comment", "subscribe"}
+ACTION_TERMS = {
+    "watch",
+    "try",
+    "learn",
+    "discover",
+    "save",
+    "share",
+    "comment",
+    "subscribe",
+}
 
 
 class SEOEvaluator:
@@ -38,9 +47,7 @@ class SEOEvaluator:
         discoverability_score = self._discoverability_score(metadata, candidates)
         description_score = self._description_score(metadata.description, candidates)
         overall_score = round(
-            ctr_score * 0.45
-            + discoverability_score * 0.4
-            + description_score * 0.15,
+            ctr_score * 0.45 + discoverability_score * 0.4 + description_score * 0.15,
             1,
         )
 
@@ -54,10 +61,14 @@ class SEOEvaluator:
             issues.append("At least one keyword is required.")
         if not any(_contains_phrase(metadata.title, phrase) for phrase in candidates):
             issues.append("Title does not contain the topic or a seed keyword.")
-            suggestions.append("Place the primary search phrase naturally in the title.")
+            suggestions.append(
+                "Place the primary search phrase naturally in the title."
+            )
         if ctr_score < 60:
             issues.append("Title needs a stronger qualified-click signal.")
-            suggestions.append("Use a specific benefit, contrast, question, or truthful number.")
+            suggestions.append(
+                "Use a specific benefit, contrast, question, or truthful number."
+            )
         if discoverability_score < 60:
             issues.append("Metadata has weak search coverage.")
             suggestions.append("Add relevant broad and long-tail keyword variants.")
@@ -65,9 +76,7 @@ class SEOEvaluator:
             issues.append("Description needs a clearer summary or viewer action.")
             suggestions.append("Open with the payoff and end with one concise action.")
         if overall_score < self.minimum_score:
-            issues.append(
-                f"Overall SEO score is below {self.minimum_score:g}."
-            )
+            issues.append(f"Overall SEO score is below {self.minimum_score:g}.")
 
         return SEOEvaluation(
             ctr_score=ctr_score,
@@ -111,7 +120,10 @@ class SEOEvaluator:
         score = 20.0
         if any(_contains_phrase(metadata.title, phrase) for phrase in candidates):
             score += 25
-        if any(_contains_phrase(metadata.description[:250], phrase) for phrase in candidates):
+        if any(
+            _contains_phrase(metadata.description[:250], phrase)
+            for phrase in candidates
+        ):
             score += 20
         covered = sum(
             1 for phrase in candidates if _contains_phrase(searchable_text, phrase)

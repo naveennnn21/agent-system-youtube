@@ -56,7 +56,9 @@ class VoiceRegistry:
             registry.register(
                 VoiceProfile(
                     name=str(name),
-                    elevenlabs_voice_id=_optional_str(config.get("elevenlabs_voice_id")),
+                    elevenlabs_voice_id=_optional_str(
+                        config.get("elevenlabs_voice_id")
+                    ),
                     openai_voice=_optional_str(config.get("openai_voice")),
                     description=str(config.get("description") or ""),
                 )
@@ -71,7 +73,9 @@ class VoiceRegistry:
             return self._voices[voice]
         except KeyError as exc:
             known = ", ".join(sorted(self._voices))
-            raise ValueError(f"Unknown voice '{voice}'. Available voices: {known}") from exc
+            raise ValueError(
+                f"Unknown voice '{voice}'. Available voices: {known}"
+            ) from exc
 
     def all(self) -> list[VoiceProfile]:
         return list(self._voices.values())

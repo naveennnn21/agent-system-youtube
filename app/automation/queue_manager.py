@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any
+from typing import Any, cast
 
 from celery import Celery
 from celery.result import AsyncResult
@@ -27,10 +27,10 @@ class QueueManager:
         self.redis = redis_client or Redis.from_url(self.settings.CELERY_BROKER_URL)
 
     def queue_lengths(self) -> dict[str, int]:
-        return {
-            queue_name: int(self.redis.llen(queue_name))
-            for queue_name in self.settings.AUTOMATION_QUEUE_NAMES
-        }
+        lengths: dict[str, int] = {}
+        for queue_name in self.settings.AUTOMATION_QUEUE_NAMES:
+            lengths[queue_name] = int(cast(int, self.redis.llen(queue_name)))
+        return lengths
 
     def inspect(self) -> dict[str, Any]:
         inspector = self.app.control.inspect(timeout=2)
@@ -64,7 +64,7 @@ class QueueManager:
     def purge_queue(self, queue_name: str) -> dict[str, Any]:
         if queue_name not in self.settings.AUTOMATION_QUEUE_NAMES:
             raise ValueError(f"Unknown queue: {queue_name}")
-        removed = int(self.redis.delete(queue_name))
+        removed = int(cast(int, self.redis.delete(queue_name)))
         return {"queue": queue_name, "purged": bool(removed)}
 
 

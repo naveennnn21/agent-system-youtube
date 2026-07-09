@@ -112,7 +112,11 @@ async def _trend_operation(state: WorkflowState) -> dict[str, Any]:
     )
     selected = next(
         (trend for trend in trends if trend.get("topic") == topic_name),
-        {"topic": topic_name, "category": metadata.get("category", "general"), "keywords": []},
+        {
+            "topic": topic_name,
+            "category": metadata.get("category", "general"),
+            "keywords": [],
+        },
     )
     return {"trend_results": trends, "selected_topic": selected}
 
@@ -123,15 +127,22 @@ async def _script_operation(state: WorkflowState) -> dict[str, Any]:
     selected = state.get("selected_topic", {})
     topic = selected.get("topic", metadata.get("topic", "AI technology"))
     keywords = selected.get("keywords") or selected.get("trending_keywords") or []
-    agent = metadata.get("script_agent") or ScriptGenerationAgent.from_settings(settings)
+    agent = metadata.get("script_agent") or ScriptGenerationAgent.from_settings(
+        settings
+    )
     request = ScriptGenerationRequest(
         topic=topic,
         category=selected.get("category", metadata.get("category", "general")),
         keywords=keywords[:10],
-        target_seconds=int(metadata.get("script_target_seconds", settings.SCRIPT_TARGET_SECONDS)),
+        target_seconds=int(
+            metadata.get("script_target_seconds", settings.SCRIPT_TARGET_SECONDS)
+        ),
         audience=metadata.get("audience", "curious general viewers"),
         tone=metadata.get("tone", "energetic, clear, and credible"),
-        research_context={"selected_topic": selected, "trend_results": state.get("trend_results", [])},
+        research_context={
+            "selected_topic": selected,
+            "trend_results": state.get("trend_results", []),
+        },
     )
     result = await agent.generate(request)
     return {
@@ -160,7 +171,9 @@ async def _visual_operation(state: WorkflowState) -> dict[str, Any]:
         script=state.get("script_draft", {}),
         topic=selected.get("topic", metadata.get("topic", "YouTube Shorts")),
         style=metadata.get("visual_style", get_settings().VISUAL_STYLE),
-        max_scenes=int(metadata.get("visual_max_scenes", get_settings().VISUAL_MAX_SCENES)),
+        max_scenes=int(
+            metadata.get("visual_max_scenes", get_settings().VISUAL_MAX_SCENES)
+        ),
         filename_prefix=metadata.get("filename_prefix", "visual"),
     )
     result = await agent.generate(request)
@@ -173,7 +186,11 @@ async def _video_editor_operation(state: WorkflowState) -> dict[str, Any]:
     visual_assets = state.get("visuals", {}).get("assets", [])
     voiceover = state.get("voiceover", {})
     request = VideoEditingRequest(
-        visuals=[asset.get("asset_path") for asset in visual_assets if asset.get("asset_path")],
+        visuals=[
+            asset.get("asset_path")
+            for asset in visual_assets
+            if asset.get("asset_path")
+        ],
         voiceover_path=voiceover.get("audio_path", ""),
         script=state.get("script_draft", {}),
         background_music_path=metadata.get("background_music_path"),
@@ -209,7 +226,9 @@ async def _upload_operation(state: WorkflowState) -> dict[str, Any]:
         title=seo.get("title", "YouTube Short")[:100],
         description=seo.get("description", ""),
         tags=_upload_tags(seo),
-        privacy_status=metadata.get("privacy_status", get_settings().YOUTUBE_DEFAULT_PRIVACY_STATUS),
+        privacy_status=metadata.get(
+            "privacy_status", get_settings().YOUTUBE_DEFAULT_PRIVACY_STATUS
+        ),
         publish_at=_datetime_or_none(metadata.get("publish_at")),
         video_id=_uuid_or_none(metadata.get("db_video_id")),
     )
@@ -228,7 +247,9 @@ async def _analytics_operation(state: WorkflowState) -> dict[str, Any]:
 
     upload = state.get("upload_result", {})
     end_date = date.today() - timedelta(days=1)
-    start_date = end_date - timedelta(days=int(metadata.get("analytics_lookback_days", 7)))
+    start_date = end_date - timedelta(
+        days=int(metadata.get("analytics_lookback_days", 7))
+    )
     result = await agent.collect(
         AnalyticsCollectionRequest(
             start_date=start_date,
@@ -250,12 +271,24 @@ async def _learning_operation(state: WorkflowState) -> dict[str, Any]:
         agent = LearningAgent.from_session(db_session)
     result = await agent.run_learning_cycle(
         LearningAnalysisRequest(
-            lookback_days=int(metadata.get("learning_lookback_days", get_settings().LEARNING_LOOKBACK_DAYS)),
+            lookback_days=int(
+                metadata.get(
+                    "learning_lookback_days", get_settings().LEARNING_LOOKBACK_DAYS
+                )
+            ),
             top_n=int(metadata.get("learning_top_n", get_settings().LEARNING_TOP_N)),
-            max_samples=int(metadata.get("learning_max_samples", get_settings().LEARNING_MAX_SAMPLES)),
-            min_views=int(metadata.get("learning_min_views", get_settings().LEARNING_MIN_VIEWS)),
+            max_samples=int(
+                metadata.get(
+                    "learning_max_samples", get_settings().LEARNING_MAX_SAMPLES
+                )
+            ),
+            min_views=int(
+                metadata.get("learning_min_views", get_settings().LEARNING_MIN_VIEWS)
+            ),
             store_results=bool(metadata.get("learning_store_results", True)),
-            model_version=metadata.get("learning_model_version", get_settings().LEARNING_MODEL_VERSION),
+            model_version=metadata.get(
+                "learning_model_version", get_settings().LEARNING_MODEL_VERSION
+            ),
         )
     )
     return {"learning_result": _to_dict(result)}
@@ -270,9 +303,15 @@ async def _run_node(
 ) -> dict[str, Any]:
     settings = get_settings()
     metadata = state.get("metadata", {})
-    max_attempts = int(metadata.get("workflow_retry_attempts", settings.WORKFLOW_RETRY_ATTEMPTS))
-    base_delay = float(metadata.get("workflow_retry_base_delay", settings.WORKFLOW_RETRY_BASE_DELAY))
-    max_delay = float(metadata.get("workflow_retry_max_delay", settings.WORKFLOW_RETRY_MAX_DELAY))
+    max_attempts = int(
+        metadata.get("workflow_retry_attempts", settings.WORKFLOW_RETRY_ATTEMPTS)
+    )
+    base_delay = float(
+        metadata.get("workflow_retry_base_delay", settings.WORKFLOW_RETRY_BASE_DELAY)
+    )
+    max_delay = float(
+        metadata.get("workflow_retry_max_delay", settings.WORKFLOW_RETRY_MAX_DELAY)
+    )
     start = time.perf_counter()
 
     for attempt in range(1, max_attempts + 1):
@@ -284,7 +323,8 @@ async def _run_node(
                 **partial,
                 "current_step": step,
                 "workflow_status": completed_status,
-                "monitoring": state.get("monitoring", []) + [
+                "monitoring": state.get("monitoring", [])
+                + [
                     {
                         "step": step,
                         "status": "succeeded",
@@ -292,9 +332,8 @@ async def _run_node(
                         "duration_ms": duration_ms,
                     }
                 ],
-                "messages": state.get("messages", []) + [
-                    AIMessage(content=f"{step} step completed.")
-                ],
+                "messages": state.get("messages", [])
+                + [AIMessage(content=f"{step} step completed.")],
             }
         except Exception as exc:
             logger.warning(
@@ -316,7 +355,8 @@ async def _run_node(
                     "current_step": step,
                     "workflow_status": "failed",
                     "errors": state.get("errors", []) + [error],
-                    "monitoring": state.get("monitoring", []) + [
+                    "monitoring": state.get("monitoring", [])
+                    + [
                         {
                             "step": step,
                             "status": "failed",
@@ -325,9 +365,8 @@ async def _run_node(
                             "error": str(exc),
                         }
                     ],
-                    "messages": state.get("messages", []) + [
-                        AIMessage(content=f"{step} step failed: {exc}")
-                    ],
+                    "messages": state.get("messages", [])
+                    + [AIMessage(content=f"{step} step failed: {exc}")],
                 }
             await asyncio.sleep(min(max_delay, base_delay * (2 ** (attempt - 1))))
 
@@ -348,14 +387,32 @@ def create_shorts_workflow_graph():
     graph.add_node("learning", learning_workflow_node)
 
     graph.set_entry_point("trend")
-    graph.add_conditional_edges("trend", _route_or_end("script"), {"script": "script", END: END})
-    graph.add_conditional_edges("script", _route_or_end("voice"), {"voice": "voice", END: END})
-    graph.add_conditional_edges("voice", _route_or_end("visual"), {"visual": "visual", END: END})
-    graph.add_conditional_edges("visual", _route_or_end("video_editor"), {"video_editor": "video_editor", END: END})
-    graph.add_conditional_edges("video_editor", _route_or_end("seo"), {"seo": "seo", END: END})
-    graph.add_conditional_edges("seo", _route_or_end("upload"), {"upload": "upload", END: END})
-    graph.add_conditional_edges("upload", _route_or_end("analytics"), {"analytics": "analytics", END: END})
-    graph.add_conditional_edges("analytics", _route_or_end("learning"), {"learning": "learning", END: END})
+    graph.add_conditional_edges(
+        "trend", _route_or_end("script"), {"script": "script", END: END}
+    )
+    graph.add_conditional_edges(
+        "script", _route_or_end("voice"), {"voice": "voice", END: END}
+    )
+    graph.add_conditional_edges(
+        "voice", _route_or_end("visual"), {"visual": "visual", END: END}
+    )
+    graph.add_conditional_edges(
+        "visual",
+        _route_or_end("video_editor"),
+        {"video_editor": "video_editor", END: END},
+    )
+    graph.add_conditional_edges(
+        "video_editor", _route_or_end("seo"), {"seo": "seo", END: END}
+    )
+    graph.add_conditional_edges(
+        "seo", _route_or_end("upload"), {"upload": "upload", END: END}
+    )
+    graph.add_conditional_edges(
+        "upload", _route_or_end("analytics"), {"analytics": "analytics", END: END}
+    )
+    graph.add_conditional_edges(
+        "analytics", _route_or_end("learning"), {"learning": "learning", END: END}
+    )
     graph.add_edge("learning", END)
     return graph.compile()
 

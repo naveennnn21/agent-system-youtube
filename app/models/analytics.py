@@ -5,7 +5,7 @@ from __future__ import annotations
 import uuid
 from datetime import date
 from decimal import Decimal
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import (
     BigInteger,
@@ -24,6 +24,11 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import BaseModel
 from app.models.enums import UploadPlatform, enum_values
+
+if TYPE_CHECKING:
+    from app.models.learning_feedback import LearningFeedback
+    from app.models.upload import Upload
+    from app.models.video import Video
 
 
 class Analytics(BaseModel):
@@ -80,15 +85,21 @@ class Analytics(BaseModel):
         index=True,
     )
     snapshot_date: Mapped[date] = mapped_column(Date, nullable=False, index=True)
-    views: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0, server_default="0")
-    likes: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0, server_default="0")
+    views: Mapped[int] = mapped_column(
+        BigInteger, nullable=False, default=0, server_default="0"
+    )
+    likes: Mapped[int] = mapped_column(
+        BigInteger, nullable=False, default=0, server_default="0"
+    )
     comments: Mapped[int] = mapped_column(
         BigInteger,
         nullable=False,
         default=0,
         server_default="0",
     )
-    shares: Mapped[int] = mapped_column(BigInteger, nullable=False, default=0, server_default="0")
+    shares: Mapped[int] = mapped_column(
+        BigInteger, nullable=False, default=0, server_default="0"
+    )
     watch_time_seconds: Mapped[int] = mapped_column(
         BigInteger,
         nullable=False,
@@ -100,7 +111,9 @@ class Analytics(BaseModel):
         nullable=True,
     )
     retention_rate: Mapped[Decimal | None] = mapped_column(Numeric(5, 4), nullable=True)
-    click_through_rate: Mapped[Decimal | None] = mapped_column(Numeric(5, 4), nullable=True)
+    click_through_rate: Mapped[Decimal | None] = mapped_column(
+        Numeric(5, 4), nullable=True
+    )
     subscribers_gained: Mapped[int] = mapped_column(
         Integer,
         nullable=False,

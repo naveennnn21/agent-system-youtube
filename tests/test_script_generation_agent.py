@@ -71,7 +71,9 @@ def test_prompt_template_contains_constraints_and_context() -> None:
 
 
 @pytest.mark.asyncio
-async def test_script_generation_agent_returns_required_contract_and_evaluation() -> None:
+async def test_script_generation_agent_returns_required_contract_and_evaluation() -> (
+    None
+):
     provider = FakeClaudeProvider(VALID_SCRIPT)
     agent = ScriptGenerationAgent(provider=provider)
 
@@ -160,7 +162,9 @@ async def test_claude_client_posts_messages_api_payload_and_extracts_text() -> N
 @pytest.mark.asyncio
 async def test_graph_script_node_uses_injected_script_agent() -> None:
     class FakeScriptAgent:
-        async def generate(self, request: ScriptGenerationRequest) -> ScriptGenerationResult:
+        async def generate(
+            self, request: ScriptGenerationRequest
+        ) -> ScriptGenerationResult:
             draft = ScriptDraft(**VALID_SCRIPT)
             evaluation = ScriptEvaluator().evaluate(draft)
             return ScriptGenerationResult(

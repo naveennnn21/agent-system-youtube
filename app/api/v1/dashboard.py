@@ -15,7 +15,6 @@ from app.db.session import get_db
 from app.models import Analytics, LearningFeedback, Upload, Video
 from app.models.enums import UploadStatus, VideoStatus
 from app.schemas.dashboard import (
-    DashboardAgentLogResponse,
     DashboardLearningInsightResponse,
     DashboardOverviewResponse,
     DashboardQueueResponse,
@@ -300,7 +299,9 @@ def _video_response(video: Video, metrics: Analytics | None) -> dict[str, Any]:
         "published_at": video.published_at,
         "created_at": video.created_at,
         "latest_views": int(metrics.views) if metrics else 0,
-        "latest_retention_rate": _float_or_none(metrics.retention_rate if metrics else None),
+        "latest_retention_rate": _float_or_none(
+            metrics.retention_rate if metrics else None
+        ),
         "latest_ctr": _float_or_none(metrics.click_through_rate if metrics else None),
     }
 
@@ -350,7 +351,9 @@ def _queue_logs_from_inspection(inspection: dict[str, Any]) -> list[dict[str, An
         for worker, tasks in workers.items():
             for task in tasks or []:
                 task_id = str(task.get("id") or task.get("request", {}).get("id") or "")
-                name = str(task.get("name") or task.get("request", {}).get("name") or "task")
+                name = str(
+                    task.get("name") or task.get("request", {}).get("name") or "task"
+                )
                 queue = _task_queue(task)
                 logs.append(
                     {
@@ -381,7 +384,9 @@ def _queue_logs_from_inspection(inspection: dict[str, Any]) -> list[dict[str, An
 
 
 def _task_queue(task: dict[str, Any]) -> str | None:
-    delivery_info = task.get("delivery_info") or task.get("request", {}).get("delivery_info") or {}
+    delivery_info = (
+        task.get("delivery_info") or task.get("request", {}).get("delivery_info") or {}
+    )
     queue = delivery_info.get("routing_key") or delivery_info.get("exchange")
     return str(queue) if queue else None
 

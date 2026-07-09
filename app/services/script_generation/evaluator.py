@@ -70,9 +70,7 @@ class ScriptEvaluator:
         retention_score = self._retention_score(draft)
         viral_score = self._viral_score(draft)
         overall_score = round(
-            (curiosity_score * 0.32)
-            + (retention_score * 0.38)
-            + (viral_score * 0.3),
+            (curiosity_score * 0.32) + (retention_score * 0.38) + (viral_score * 0.3),
             2,
         )
 
@@ -80,19 +78,25 @@ class ScriptEvaluator:
         suggestions: list[str] = []
         if estimated_seconds < MIN_SECONDS:
             issues.append("Script is shorter than 30 seconds.")
-            suggestions.append("Add one concrete example or contrast in the main script.")
+            suggestions.append(
+                "Add one concrete example or contrast in the main script."
+            )
         if estimated_seconds > MAX_SECONDS:
             issues.append("Script is longer than 60 seconds.")
             suggestions.append("Cut setup lines and keep only one core payoff.")
         if curiosity_score < 55:
             issues.append("Hook does not create enough curiosity.")
-            suggestions.append("Open with a sharper contrast, question, or surprising claim.")
+            suggestions.append(
+                "Open with a sharper contrast, question, or surprising claim."
+            )
         if retention_score < 55:
             issues.append("Main script needs stronger retention structure.")
             suggestions.append("Add an open loop and resolve it near the end.")
         if viral_score < 45:
             issues.append("CTA or payoff is not share-oriented enough.")
-            suggestions.append("Make the takeaway saveable, shareable, or comment-worthy.")
+            suggestions.append(
+                "Make the takeaway saveable, shareable, or comment-worthy."
+            )
 
         return ScriptEvaluation(
             estimated_seconds=estimated_seconds,
@@ -140,7 +144,10 @@ class ScriptEvaluator:
         score = 30.0
         if any(term in cta for term in SHARING_TERMS):
             score += 30
-        if any(term in full_text for term in {"most people", "everyone", "nobody", "simple"}):
+        if any(
+            term in full_text
+            for term in {"most people", "everyone", "nobody", "simple"}
+        ):
             score += 15
         if len(_words(draft.cta)) <= 18:
             score += 15

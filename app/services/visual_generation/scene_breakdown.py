@@ -70,7 +70,9 @@ def _split_sentences(text: str) -> list[str]:
 def _group_sentences(sentences: list[str], group_count: int) -> list[list[str]]:
     groups: list[list[str]] = [[] for _ in range(group_count)]
     for index, sentence in enumerate(sentences):
-        groups[min(group_count - 1, index * group_count // len(sentences))].append(sentence)
+        groups[min(group_count - 1, index * group_count // len(sentences))].append(
+            sentence
+        )
     return [group for group in groups if group]
 
 

@@ -60,7 +60,11 @@ def test_schedule_daily_shorts_uses_spacing_and_returns_task_ids() -> None:
     )
 
     assert result["scheduled_count"] == 3
-    assert [task["task_id"] for task in result["tasks"]] == ["task-1", "task-2", "task-3"]
+    assert [task["task_id"] for task in result["tasks"]] == [
+        "task-1",
+        "task-2",
+        "task-3",
+    ]
     assert [countdown for _, countdown in enqueued] == [0, 1200, 2400]
 
 
@@ -117,7 +121,12 @@ def test_notification_service_posts_webhook_payload() -> None:
 def test_queue_manager_inspects_lengths_and_purges_known_queue() -> None:
     class FakeRedis:
         def __init__(self) -> None:
-            self.lengths = {"automation": 1, "shorts": 2, "analytics": 0, "notifications": 3}
+            self.lengths = {
+                "automation": 1,
+                "shorts": 2,
+                "analytics": 0,
+                "notifications": 3,
+            }
             self.deleted: list[str] = []
 
         def llen(self, queue_name: str) -> int:

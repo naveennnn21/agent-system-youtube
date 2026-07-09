@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from decimal import Decimal
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import (
     CheckConstraint,
@@ -24,6 +24,11 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.db.base import BaseModel
 from app.models.enums import ScriptStatus, enum_values
 
+if TYPE_CHECKING:
+    from app.models.learning_feedback import LearningFeedback
+    from app.models.topic import Topic
+    from app.models.video import Video
+
 
 class Script(BaseModel):
     """Script draft/revision generated for a topic or video."""
@@ -31,12 +36,16 @@ class Script(BaseModel):
     __tablename__ = "scripts"
     __table_args__ = (
         CheckConstraint("version > 0", name="ck_scripts_version_positive"),
-        CheckConstraint("prompt_tokens >= 0", name="ck_scripts_prompt_tokens_nonnegative"),
+        CheckConstraint(
+            "prompt_tokens >= 0", name="ck_scripts_prompt_tokens_nonnegative"
+        ),
         CheckConstraint(
             "completion_tokens >= 0",
             name="ck_scripts_completion_tokens_nonnegative",
         ),
-        CheckConstraint("total_tokens >= 0", name="ck_scripts_total_tokens_nonnegative"),
+        CheckConstraint(
+            "total_tokens >= 0", name="ck_scripts_total_tokens_nonnegative"
+        ),
         UniqueConstraint("topic_id", "version", name="uq_scripts_topic_version"),
         Index("ix_scripts_topic_status", "topic_id", "status"),
         Index("ix_scripts_video_status", "video_id", "status"),

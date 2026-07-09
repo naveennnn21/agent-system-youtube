@@ -141,7 +141,10 @@ def test_learning_analyzer_finds_winners_and_generation_hints() -> None:
     assert result.recommendations.generation_hints["preferred_topics"] == [
         "AI video editing"
     ]
-    assert "AI video editing" in result.recommendations.generation_hints["preferred_keywords"]
+    assert (
+        "AI video editing"
+        in result.recommendations.generation_hints["preferred_keywords"]
+    )
 
 
 def test_empty_learning_result_keeps_safe_defaults() -> None:
@@ -157,12 +160,17 @@ def test_hook_and_format_classification_are_stable() -> None:
     assert hook_pattern("3 mistakes creators make") == "numbered_payoff"
     assert hook_pattern("What if editing took one minute?") == "curiosity_question"
     assert hook_pattern("Stop making this caption mistake") == "mistake_warning"
-    assert classify_format(duration_seconds=30, aspect_ratio="9:16") == "fast_cut_vertical"
-    assert classify_format(
-        duration_seconds=55,
-        aspect_ratio="9:16",
-        metadata={"format": "Talking Head Explainer"},
-    ) == "talking_head_explainer"
+    assert (
+        classify_format(duration_seconds=30, aspect_ratio="9:16") == "fast_cut_vertical"
+    )
+    assert (
+        classify_format(
+            duration_seconds=55,
+            aspect_ratio="9:16",
+            metadata={"format": "Talking Head Explainer"},
+        )
+        == "talking_head_explainer"
+    )
 
 
 @pytest.mark.asyncio
@@ -183,7 +191,9 @@ async def test_learning_agent_stores_aggregate_and_signal_feedback() -> None:
     assert "winning_topic" in signals
     assert "winning_posting_time" in signals
     assert "best_format" in signals
-    assert all(feedback.model_version == "learning-agent-v1" for feedback in repository.created)
+    assert all(
+        feedback.model_version == "learning-agent-v1" for feedback in repository.created
+    )
 
 
 def test_learning_agent_merges_generation_context() -> None:

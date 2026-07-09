@@ -233,7 +233,9 @@ async def test_source_collectors_parse_provider_payloads() -> None:
     assert youtube_signals[0].engagement == 1280
     assert google_signals[0].title == "AI agents"
     assert google_signals[0].engagement == 100_000
-    assert reddit_signals[0].url == "https://www.reddit.com/r/youtube/comments/abc/test/"
+    assert (
+        reddit_signals[0].url == "https://www.reddit.com/r/youtube/comments/abc/test/"
+    )
     assert news_signals[0].title == "Technology headline for creators"
 
 

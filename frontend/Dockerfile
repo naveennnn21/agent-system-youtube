@@ -8,6 +8,7 @@ ENV NODE_ENV=production
 
 COPY package*.json ./
 COPY pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml ./
 RUN corepack enable && pnpm install --frozen-lockfile
 
 COPY . .

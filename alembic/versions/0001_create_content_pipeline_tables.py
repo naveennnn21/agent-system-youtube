@@ -191,7 +191,9 @@ def upgrade() -> None:
         sa.Column("description", sa.Text(), nullable=True),
         sa.Column("status", video_status, server_default="planned", nullable=False),
         sa.Column("duration_seconds", sa.Integer(), nullable=True),
-        sa.Column("language", sa.String(length=16), server_default="en", nullable=False),
+        sa.Column(
+            "language", sa.String(length=16), server_default="en", nullable=False
+        ),
         sa.Column(
             "aspect_ratio",
             sa.String(length=16),
@@ -454,7 +456,9 @@ def upgrade() -> None:
     )
     op.create_index("ix_learning_feedback_video_id", "learning_feedback", ["video_id"])
     op.create_index("ix_learning_feedback_topic_id", "learning_feedback", ["topic_id"])
-    op.create_index("ix_learning_feedback_script_id", "learning_feedback", ["script_id"])
+    op.create_index(
+        "ix_learning_feedback_script_id", "learning_feedback", ["script_id"]
+    )
     op.create_index(
         "ix_learning_feedback_analytics_id",
         "learning_feedback",

@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import (
     CheckConstraint,
@@ -22,6 +22,13 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import BaseModel
 from app.models.enums import VideoStatus, enum_values
+
+if TYPE_CHECKING:
+    from app.models.analytics import Analytics
+    from app.models.learning_feedback import LearningFeedback
+    from app.models.script import Script
+    from app.models.topic import Topic
+    from app.models.upload import Upload
 
 
 class Video(BaseModel):

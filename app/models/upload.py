@@ -4,14 +4,27 @@ from __future__ import annotations
 
 import uuid
 from datetime import datetime
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import DateTime, Enum, ForeignKey, Index, String, Text, UniqueConstraint, text
+from sqlalchemy import (
+    DateTime,
+    Enum,
+    ForeignKey,
+    Index,
+    String,
+    Text,
+    UniqueConstraint,
+    text,
+)
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import BaseModel
 from app.models.enums import UploadPlatform, UploadStatus, enum_values
+
+if TYPE_CHECKING:
+    from app.models.analytics import Analytics
+    from app.models.video import Video
 
 
 class Upload(BaseModel):

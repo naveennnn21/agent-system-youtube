@@ -21,6 +21,7 @@ from typing import Any, TypedDict
 
 from langchain_core.messages import AIMessage, BaseMessage
 from langgraph.graph import END, StateGraph
+from langgraph.graph.state import CompiledStateGraph
 
 from app.agents.script_generation import ScriptGenerationAgent
 from app.agents.trend_research import TrendResearchAgent
@@ -77,9 +78,7 @@ async def research_node(state: AgentState) -> dict:
         trending_topics[0]["topic"] if trending_topics else "AI technology"
     )
     trending_keywords = [
-        keyword
-        for trend in trending_topics
-        for keyword in trend.get("keywords", [])
+        keyword for trend in trending_topics for keyword in trend.get("keywords", [])
     ]
     research_results = {
         "topic": topic,
@@ -171,8 +170,7 @@ async def review_node(state: AgentState) -> dict:
     script_value = state.get("script_draft", "")
     if isinstance(script_value, dict):
         script = " ".join(
-            script_value.get(part, "")
-            for part in ("hook", "script", "cta")
+            script_value.get(part, "") for part in ("hook", "script", "cta")
         )
     else:
         script = script_value
@@ -198,7 +196,7 @@ async def review_node(state: AgentState) -> dict:
 # ── Graph factory ─────────────────────────────────────────────────────
 
 
-def create_agent_graph() -> StateGraph:
+def create_agent_graph() -> CompiledStateGraph:
     """Build and compile the content-creation agent graph.
 
     Returns:

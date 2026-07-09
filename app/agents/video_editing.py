@@ -106,7 +106,10 @@ class VideoEditingAgent:
             voice_duration = request.min_duration_seconds
         duration = min(
             request.max_duration_seconds or self.max_duration_seconds,
-            max(request.min_duration_seconds or self.min_duration_seconds, voice_duration),
+            max(
+                request.min_duration_seconds or self.min_duration_seconds,
+                voice_duration,
+            ),
         )
 
         clips = _assign_clip_durations(clips, duration)
@@ -155,7 +158,9 @@ class VideoEditingAgent:
         )
 
     def _output_path(self, prefix: str) -> str:
-        safe_prefix = "".join(char if char.isalnum() or char in "-_" else "-" for char in prefix)
+        safe_prefix = "".join(
+            char if char.isalnum() or char in "-_" else "-" for char in prefix
+        )
         filename = f"{safe_prefix.strip('-') or 'short'}-{uuid.uuid4().hex}.mp4"
         return str(self.output_dir / filename)
 
@@ -181,7 +186,9 @@ def _normalize_visuals(visuals: list[VisualClip | str | dict]) -> list[VisualCli
     return clips
 
 
-def _assign_clip_durations(clips: list[VisualClip], total_duration: float) -> list[VisualClip]:
+def _assign_clip_durations(
+    clips: list[VisualClip], total_duration: float
+) -> list[VisualClip]:
     explicit = sum(clip.duration or 0 for clip in clips)
     missing = [clip for clip in clips if not clip.duration]
     remaining = max(0.1, total_duration - explicit)

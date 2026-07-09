@@ -30,10 +30,14 @@ class Settings(BaseSettings):
     API_PORT: int = 8000
 
     # -- Database (async — used by SQLAlchemy async engine) --------------------
-    DATABASE_URL: str = "postgresql+asyncpg://postgres:postgres@db:5432/youtube_shorts_agent"
+    DATABASE_URL: str = (
+        "postgresql+asyncpg://postgres:postgres@db:5432/youtube_shorts_agent"
+    )
 
     # -- Database (sync — used by Alembic migrations) --------------------------
-    DATABASE_SYNC_URL: str = "postgresql://postgres:postgres@db:5432/youtube_shorts_agent"
+    DATABASE_SYNC_URL: str = (
+        "postgresql://postgres:postgres@db:5432/youtube_shorts_agent"
+    )
     DB_POOL_SIZE: int = Field(default=20, ge=1)
     DB_MAX_OVERFLOW: int = Field(default=10, ge=0)
     DB_POOL_TIMEOUT: int = Field(default=30, ge=1)
@@ -89,7 +93,9 @@ class Settings(BaseSettings):
 
     # -- Analytics agent -------------------------------------------------------
     YOUTUBE_ANALYTICS_BASE_URL: str = "https://youtubeanalytics.googleapis.com/v2"
-    YOUTUBE_ANALYTICS_SCOPE: str = "https://www.googleapis.com/auth/yt-analytics.readonly"
+    YOUTUBE_ANALYTICS_SCOPE: str = (
+        "https://www.googleapis.com/auth/yt-analytics.readonly"
+    )
     YOUTUBE_ANALYTICS_IDS: str = "channel==MINE"
     YOUTUBE_ANALYTICS_METRICS: list[str] = [
         "views",
@@ -239,9 +245,7 @@ class Settings(BaseSettings):
         allowed = {"DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"}
         upper = v.upper()
         if upper not in allowed:
-            raise ValueError(
-                f"LOG_LEVEL must be one of {allowed}, got '{v}'"
-            )
+            raise ValueError(f"LOG_LEVEL must be one of {allowed}, got '{v}'")
         return upper
 
     @field_validator("API_PORT")
@@ -249,9 +253,7 @@ class Settings(BaseSettings):
     def validate_api_port(cls, v: int) -> int:
         """Ensure the port number is within the valid range."""
         if not (1 <= v <= 65535):
-            raise ValueError(
-                f"API_PORT must be between 1 and 65535, got {v}"
-            )
+            raise ValueError(f"API_PORT must be between 1 and 65535, got {v}")
         return v
 
     @field_validator("DATABASE_URL")

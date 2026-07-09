@@ -31,7 +31,9 @@ class FakeCollector:
         self.snapshots = snapshots
         self.query: YouTubeAnalyticsQuery | None = None
 
-    async def fetch_video_metrics(self, query: YouTubeAnalyticsQuery) -> list[AnalyticsSnapshot]:
+    async def fetch_video_metrics(
+        self, query: YouTubeAnalyticsQuery
+    ) -> list[AnalyticsSnapshot]:
         self.query = query
         return self.snapshots
 
@@ -40,7 +42,9 @@ class FakeUploadsRepository:
     def __init__(self, uploads: list[SimpleNamespace]) -> None:
         self.uploads = uploads
 
-    async def list_successful_youtube_uploads(self, *, limit: int = 100, offset: int = 0):
+    async def list_successful_youtube_uploads(
+        self, *, limit: int = 100, offset: int = 0
+    ):
         return self.uploads[offset : offset + limit]
 
 
@@ -48,7 +52,9 @@ class FakeAnalyticsRepository:
     def __init__(self) -> None:
         self.records: dict[tuple[uuid.UUID, date], SimpleNamespace] = {}
 
-    async def get_snapshot(self, video_id, snapshot_date, platform=UploadPlatform.YOUTUBE_SHORTS):
+    async def get_snapshot(
+        self, video_id, snapshot_date, platform=UploadPlatform.YOUTUBE_SHORTS
+    ):
         return self.records.get((video_id, snapshot_date))
 
     async def create(self, **values):
@@ -61,9 +67,18 @@ class FakeAnalyticsRepository:
             setattr(instance, key, value)
         return instance
 
-    async def list_between(self, *, start_date, end_date, platform=UploadPlatform.YOUTUBE_SHORTS, offset=0, limit=1000):
+    async def list_between(
+        self,
+        *,
+        start_date,
+        end_date,
+        platform=UploadPlatform.YOUTUBE_SHORTS,
+        offset=0,
+        limit=1000,
+    ):
         records = [
-            record for (_, snapshot_date), record in self.records.items()
+            record
+            for (_, snapshot_date), record in self.records.items()
             if start_date <= snapshot_date <= end_date
         ]
         return records[offset : offset + limit]
@@ -110,7 +125,9 @@ def test_parse_youtube_analytics_response_maps_required_metrics() -> None:
             {"name": "comments"},
             {"name": "shares"},
         ],
-        "rows": [["abc123", "2026-07-02", 1000, 250.5, 32.7, 82.4, 12.5, 9, 88, 11, 24]],
+        "rows": [
+            ["abc123", "2026-07-02", 1000, 250.5, 32.7, 82.4, 12.5, 9, 88, 11, 24]
+        ],
     }
 
     snapshots = parse_analytics_response(payload, query=query)
@@ -136,7 +153,9 @@ async def test_youtube_analytics_client_sends_authorized_report_query() -> None:
 
     def handler(request: httpx.Request) -> httpx.Response:
         if str(request.url) == "https://oauth2.googleapis.com/token":
-            return httpx.Response(200, json={"access_token": "token", "token_type": "Bearer"})
+            return httpx.Response(
+                200, json={"access_token": "token", "token_type": "Bearer"}
+            )
         captured["authorization"] = request.headers["authorization"]
         captured["query"] = parse_qs(request.url.query.decode())
         return httpx.Response(

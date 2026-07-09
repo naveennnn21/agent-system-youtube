@@ -24,7 +24,9 @@ def build_daily_short_payloads(
                 "automation_run_index": index + 1,
                 "automation_batch_size": count,
                 "category": metadata.get("category", category),
-                "filename_prefix": metadata.get("filename_prefix", f"short-{today}-{index + 1}"),
+                "filename_prefix": metadata.get(
+                    "filename_prefix", f"short-{today}-{index + 1}"
+                ),
             }
         )
         payloads.append(metadata)

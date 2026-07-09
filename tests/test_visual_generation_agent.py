@@ -127,7 +127,9 @@ async def test_flux_client_posts_payload_and_extracts_image_bytes() -> None:
         captured["url"] = str(request.url)
         captured["api_key"] = request.headers["x-key"]
         captured["payload"] = request.read()
-        return httpx.Response(200, content=png_bytes(), headers={"content-type": "image/png"})
+        return httpx.Response(
+            200, content=png_bytes(), headers={"content-type": "image/png"}
+        )
 
     async with httpx.AsyncClient(transport=httpx.MockTransport(handler)) as client:
         provider = FluxImageClient(api_key="flux-key", client=client)
@@ -288,4 +290,6 @@ async def test_visual_agent_reports_all_provider_failures(tmp_path) -> None:
     )
 
     with pytest.raises(VisualGenerationError, match="All image providers failed"):
-        await agent.generate(VisualGenerationRequest(script=script_text(), max_scenes=1))
+        await agent.generate(
+            VisualGenerationRequest(script=script_text(), max_scenes=1)
+        )

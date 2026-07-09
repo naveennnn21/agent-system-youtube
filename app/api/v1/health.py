@@ -76,9 +76,11 @@ async def readiness(
         "redis": redis_status,
     }
 
-    overall = "healthy" if all(
-        c.get("status") == "healthy" for c in checks.values()
-    ) else "unhealthy"
+    overall = (
+        "healthy"
+        if all(c.get("status") == "healthy" for c in checks.values())
+        else "unhealthy"
+    )
 
     return {
         "status": overall,

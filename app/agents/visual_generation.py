@@ -108,14 +108,18 @@ class VisualGenerationAgent:
         result = await self.generate(request)
         return result.to_dict()
 
-    async def generate(self, request: VisualGenerationRequest) -> VisualGenerationResult:
+    async def generate(
+        self, request: VisualGenerationRequest
+    ) -> VisualGenerationResult:
         """Generate scene breakdown, prompts, and stored image assets."""
         scenes = self.scene_generator.generate(request)
         prompts = [self.prompt_builder.build(scene, request) for scene in scenes]
         assets: list[VisualAsset] = []
 
         for prompt in prompts:
-            image, provider_name = await self._generate_image(request, prompt.image_prompt, prompt.negative_prompt)
+            image, provider_name = await self._generate_image(
+                request, prompt.image_prompt, prompt.negative_prompt
+            )
             extension = extension_from_media_type(image.media_type)
             path, width, height = await self.storage.save(
                 image.content,
@@ -153,16 +157,18 @@ class VisualGenerationAgent:
                 errors.append(f"{provider_name}: provider is not configured")
                 continue
 
+            async def generate_image() -> GeneratedImage:
+                return await provider.generate_image(
+                    prompt=prompt,
+                    negative_prompt=negative_prompt,
+                    width=request.width,
+                    height=request.height,
+                    aspect_ratio=request.aspect_ratio,
+                )
+
             try:
                 image = await self.retry_policy.run(
-                    lambda provider=provider: provider.generate_image(
-                        prompt=prompt,
-                        negative_prompt=negative_prompt,
-                        width=request.width,
-                        height=request.height,
-                        aspect_ratio=request.aspect_ratio,
-                    ),
-                    retryable=_is_retryable_image_error,
+                    generate_image, retryable=_is_retryable_image_error
                 )
                 return image, provider_name
             except Exception as exc:

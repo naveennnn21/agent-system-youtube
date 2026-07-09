@@ -52,7 +52,9 @@ class YouTubeAnalyticsClient:
                         headers=headers,
                     )
         except httpx.HTTPError as exc:
-            raise YouTubeAnalyticsError(f"YouTube Analytics request failed: {exc}") from exc
+            raise YouTubeAnalyticsError(
+                f"YouTube Analytics request failed: {exc}"
+            ) from exc
 
         if response.status_code >= 400:
             raise YouTubeAnalyticsError(
@@ -62,7 +64,9 @@ class YouTubeAnalyticsClient:
 
         payload = response.json()
         if not isinstance(payload, dict):
-            raise YouTubeAnalyticsError("YouTube Analytics response must be a JSON object.")
+            raise YouTubeAnalyticsError(
+                "YouTube Analytics response must be a JSON object."
+            )
         return parse_analytics_response(payload, query=query)
 
 
@@ -72,11 +76,12 @@ def parse_analytics_response(
     query: YouTubeAnalyticsQuery,
 ) -> list[AnalyticsSnapshot]:
     """Parse YouTube Analytics resultTable JSON into normalized snapshots."""
-    headers = [
-        header.get("name")
-        for header in payload.get("columnHeaders", [])
-        if isinstance(header, dict)
-    ]
+    headers: list[str] = []
+    for header in payload.get("columnHeaders", []):
+        if isinstance(header, dict):
+            name = header.get("name")
+            if isinstance(name, str):
+                headers.append(name)
     if not headers:
         return []
     rows = payload.get("rows") or []
@@ -94,9 +99,7 @@ def parse_analytics_response(
             continue
         snapshot_date = _parse_snapshot_date(values.get("day"), query.end_date)
         raw_metrics = {
-            key: value
-            for key, value in values.items()
-            if key not in {"video", "day"}
+            key: value for key, value in values.items() if key not in {"video", "day"}
         }
         snapshots.append(
             AnalyticsSnapshot(
@@ -112,9 +115,7 @@ def parse_analytics_response(
                 average_view_duration_seconds=_nullable_float(
                     values.get("averageViewDuration")
                 ),
-                retention_rate=_percentage_to_rate(
-                    values.get("averageViewPercentage")
-                ),
+                retention_rate=_percentage_to_rate(values.get("averageViewPercentage")),
                 click_through_rate=_first_percentage_to_rate(
                     values,
                     "impressionsClickThroughRate",

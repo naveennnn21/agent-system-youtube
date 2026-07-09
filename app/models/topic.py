@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import datetime
 from decimal import Decimal
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
 from sqlalchemy import DateTime, Enum, Index, Numeric, String, Text, text
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
@@ -12,6 +12,11 @@ from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import BaseModel
 from app.models.enums import TopicStatus, enum_values
+
+if TYPE_CHECKING:
+    from app.models.learning_feedback import LearningFeedback
+    from app.models.script import Script
+    from app.models.video import Video
 
 
 class Topic(BaseModel):

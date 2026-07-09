@@ -5,14 +5,30 @@ from __future__ import annotations
 import uuid
 from datetime import datetime
 from decimal import Decimal
-from typing import Any
+from typing import TYPE_CHECKING, Any
 
-from sqlalchemy import Boolean, DateTime, Enum, ForeignKey, Index, Numeric, String, Text, text
+from sqlalchemy import (
+    Boolean,
+    DateTime,
+    Enum,
+    ForeignKey,
+    Index,
+    Numeric,
+    String,
+    Text,
+    text,
+)
 from sqlalchemy.dialects.postgresql import JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.db.base import BaseModel
 from app.models.enums import FeedbackType, enum_values
+
+if TYPE_CHECKING:
+    from app.models.analytics import Analytics
+    from app.models.script import Script
+    from app.models.topic import Topic
+    from app.models.video import Video
 
 
 class LearningFeedback(BaseModel):

@@ -183,7 +183,9 @@ class FluxImageClient:
         except httpx.HTTPStatusError as exc:
             raise _provider_http_error("Flux", exc) from exc
         except httpx.HTTPError as exc:
-            raise ImageProviderError(f"Flux request failed: {exc}", retryable=True) from exc
+            raise ImageProviderError(
+                f"Flux request failed: {exc}", retryable=True
+            ) from exc
 
     def _headers(self, *, accept: str = "application/json") -> dict[str, str]:
         return {
@@ -247,7 +249,9 @@ class StableDiffusionImageClient:
             "authorization": f"Bearer {self.api_key}",
             "accept": "image/*, application/json",
         }
-        response = await self._post(self._url(self.generate_endpoint), files=files, headers=headers)
+        response = await self._post(
+            self._url(self.generate_endpoint), files=files, headers=headers
+        )
         media_type = response.headers.get("content-type", "image/png").split(";")[0]
         if media_type.startswith("image/"):
             return GeneratedImage(
@@ -259,7 +263,9 @@ class StableDiffusionImageClient:
         payload = response.json()
         base64_value = _find_base64_image(payload)
         if not base64_value:
-            raise ImageProviderError("Stable Diffusion response did not include image data.")
+            raise ImageProviderError(
+                "Stable Diffusion response did not include image data."
+            )
         return GeneratedImage(
             content=base64.b64decode(base64_value),
             provider=self.provider,
@@ -296,7 +302,9 @@ class StableDiffusionImageClient:
         return f"{self.base_url}/{endpoint.lstrip('/')}"
 
 
-def _provider_http_error(provider: str, exc: httpx.HTTPStatusError) -> ImageProviderError:
+def _provider_http_error(
+    provider: str, exc: httpx.HTTPStatusError
+) -> ImageProviderError:
     status_code = exc.response.status_code
     retryable = status_code in {408, 409, 425, 429, 500, 502, 503, 504}
     return ImageProviderError(

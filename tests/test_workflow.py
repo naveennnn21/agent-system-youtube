@@ -9,7 +9,11 @@ from app.agents.seo import SEOGenerationResult
 from app.agents.workflow import create_shorts_workflow_graph
 from app.services.analytics import AnalyticsCollectionResult
 from app.services.learning import LearningAnalysisRequest, LearningAnalyzer
-from app.services.script_generation import ScriptDraft, ScriptEvaluator, ScriptGenerationRequest
+from app.services.script_generation import (
+    ScriptDraft,
+    ScriptEvaluator,
+    ScriptGenerationRequest,
+)
 from app.services.seo import SEOEvaluation, SEOMetadata
 from app.services.video_editing import VideoEditingResult
 from app.services.visual_generation import VisualAsset, VisualGenerationResult
@@ -36,7 +40,9 @@ class FakeScriptAgent:
         self.fail_once = fail_once
         self.calls = 0
 
-    async def generate(self, request: ScriptGenerationRequest) -> ScriptGenerationResult:
+    async def generate(
+        self, request: ScriptGenerationRequest
+    ) -> ScriptGenerationResult:
         self.calls += 1
         if self.fail_once and self.calls == 1:
             raise RuntimeError("temporary script failure")
@@ -64,7 +70,9 @@ class FakeVoiceAgent:
     async def generate(self, request):
         if self.fail:
             raise RuntimeError("voice provider unavailable")
-        return VoiceGenerationResult(audio_path="storage/audio/voice.mp3", duration=42.0)
+        return VoiceGenerationResult(
+            audio_path="storage/audio/voice.mp3", duration=42.0
+        )
 
 
 class FakeVisualAgent:
@@ -206,7 +214,9 @@ async def test_workflow_retries_transient_node_failure() -> None:
         }
     )
 
-    script_event = next(event for event in result["monitoring"] if event["step"] == "script")
+    script_event = next(
+        event for event in result["monitoring"] if event["step"] == "script"
+    )
     assert result["workflow_status"] == "completed"
     assert script_agent.calls == 2
     assert script_event["attempts"] == 2

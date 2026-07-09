@@ -53,9 +53,17 @@ class NotificationService:
         logger.info("automation notification: %s", payload)
 
         if not self.settings.NOTIFICATIONS_ENABLED:
-            return {"delivered": False, "reason": "notifications disabled", "event": payload}
+            return {
+                "delivered": False,
+                "reason": "notifications disabled",
+                "event": payload,
+            }
         if not self.settings.NOTIFICATION_WEBHOOK_URL:
-            return {"delivered": False, "reason": "webhook not configured", "event": payload}
+            return {
+                "delivered": False,
+                "reason": "webhook not configured",
+                "event": payload,
+            }
 
         try:
             if self._client is not None:
@@ -65,7 +73,9 @@ class NotificationService:
                     timeout=self.settings.NOTIFICATION_WEBHOOK_TIMEOUT,
                 )
             else:
-                with httpx.Client(timeout=self.settings.NOTIFICATION_WEBHOOK_TIMEOUT) as client:
+                with httpx.Client(
+                    timeout=self.settings.NOTIFICATION_WEBHOOK_TIMEOUT
+                ) as client:
                     response = client.post(
                         self.settings.NOTIFICATION_WEBHOOK_URL,
                         json=payload,

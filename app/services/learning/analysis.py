@@ -28,7 +28,8 @@ class LearningAnalyzer:
     ) -> LearningAnalysisResult:
         request = request or LearningAnalysisRequest()
         eligible = [
-            sample for sample in samples
+            sample
+            for sample in samples
             if sample.metrics.get("views", 0) >= request.min_views
         ]
         if not eligible:
@@ -131,7 +132,9 @@ def _performance_score(sample: ContentPerformanceSample, *, max_views: float) ->
 
     duration_score = 0.0
     if sample.duration_seconds and avg_view_duration:
-        duration_score = min(_safe_ratio(avg_view_duration, sample.duration_seconds), 1) * 5
+        duration_score = (
+            min(_safe_ratio(avg_view_duration, sample.duration_seconds), 1) * 5
+        )
 
     return round(
         view_score
@@ -159,7 +162,9 @@ def _winning_hooks(winners: list[ScoredContentSample]) -> list[WinningSignal]:
                 value=pattern,
                 score=_avg_score(items),
                 count=len(items),
-                evidence=[_evidence(item) | {"hook": item.sample.hook} for item in items[:3]],
+                evidence=[
+                    _evidence(item) | {"hook": item.sample.hook} for item in items[:3]
+                ],
                 recommendation=_hook_recommendation(pattern, best.sample.topic),
             )
         )
@@ -180,7 +185,10 @@ def _winning_topics(winners: list[ScoredContentSample]) -> list[WinningSignal]:
                 value=topic,
                 score=_avg_score(items),
                 count=len(items),
-                evidence=[_evidence(item) | {"keywords": item.sample.keywords} for item in items[:3]],
+                evidence=[
+                    _evidence(item) | {"keywords": item.sample.keywords}
+                    for item in items[:3]
+                ],
                 recommendation=f"Generate adjacent angles around '{topic}' using proven keywords.",
             )
             for topic, items in grouped.items()
@@ -291,7 +299,9 @@ def _build_recommendations(
     best_format = best_formats[0].value if best_formats else "standard_short_vertical"
     format_defaults = {
         "format": best_format,
-        "duration_seconds": round(statistics.fmean(duration_values)) if duration_values else 45,
+        "duration_seconds": (
+            round(statistics.fmean(duration_values)) if duration_values else 45
+        ),
         "aspect_ratio": "9:16",
         "pacing": best_format.split("_")[0],
     }
@@ -300,11 +310,18 @@ def _build_recommendations(
         "preferred_hook_patterns": [signal.value for signal in winning_hooks[:3]],
         "preferred_topics": [signal.value for signal in winning_topics[:5]],
         "preferred_keywords": top_keywords,
-        "preferred_posting_slots": [signal.value for signal in winning_posting_times[:3]],
+        "preferred_posting_slots": [
+            signal.value for signal in winning_posting_times[:3]
+        ],
         "preferred_format": format_defaults,
-        "avoid": ["untested hooks with no clear payoff", "posting outside proven slots"],
+        "avoid": [
+            "untested hooks with no clear payoff",
+            "posting outside proven slots",
+        ],
     }
-    confidence = min(100.0, round((len(winners) / max(sample_count, 1)) * 50 + len(winners) * 8, 1))
+    confidence = min(
+        100.0, round((len(winners) / max(sample_count, 1)) * 50 + len(winners) * 8, 1)
+    )
     return ContentRecommendations(
         next_topics=next_topics,
         hook_templates=hook_templates,
@@ -320,13 +337,21 @@ def _empty_result(request: LearningAnalysisRequest) -> LearningAnalysisResult:
         next_topics=[],
         hook_templates=[],
         posting_schedule=[],
-        format_defaults={"format": "standard_short_vertical", "duration_seconds": 45, "aspect_ratio": "9:16"},
+        format_defaults={
+            "format": "standard_short_vertical",
+            "duration_seconds": 45,
+            "aspect_ratio": "9:16",
+        },
         generation_hints={
             "preferred_hook_patterns": [],
             "preferred_topics": [],
             "preferred_keywords": [],
             "preferred_posting_slots": [],
-            "preferred_format": {"format": "standard_short_vertical", "duration_seconds": 45, "aspect_ratio": "9:16"},
+            "preferred_format": {
+                "format": "standard_short_vertical",
+                "duration_seconds": 45,
+                "aspect_ratio": "9:16",
+            },
             "avoid": [],
         },
         confidence=0.0,
@@ -360,7 +385,9 @@ def _evidence(item: ScoredContentSample) -> dict[str, Any]:
         "video_id": str(item.sample.video_id) if item.sample.video_id else None,
         "topic_id": str(item.sample.topic_id) if item.sample.topic_id else None,
         "script_id": str(item.sample.script_id) if item.sample.script_id else None,
-        "analytics_id": str(item.sample.analytics_id) if item.sample.analytics_id else None,
+        "analytics_id": (
+            str(item.sample.analytics_id) if item.sample.analytics_id else None
+        ),
         "title": item.sample.title,
         "topic": item.sample.topic,
         "score": item.score,

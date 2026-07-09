@@ -22,9 +22,7 @@ from app.services.trends.models import TrendSignal
 logger = logging.getLogger(__name__)
 
 YOUTUBE_MOST_POPULAR_URL = "https://www.googleapis.com/youtube/v3/videos"
-GOOGLE_TRENDS_RSS_URL = (
-    "https://trends.google.com/trends/trendingsearches/daily/rss"
-)
+GOOGLE_TRENDS_RSS_URL = "https://trends.google.com/trends/trendingsearches/daily/rss"
 GOOGLE_NEWS_RSS_URL = "https://news.google.com/rss"
 REDDIT_HOT_URL = "https://www.reddit.com/r/{subreddit}/hot.json"
 
@@ -174,7 +172,11 @@ class YouTubeTrendsCollector(HttpTrendCollector):
                     category=video_category,
                     keywords=_clean_keywords(snippet.get("tags", [])),
                     engagement=engagement,
-                    url=f"https://www.youtube.com/watch?v={video_id}" if video_id else None,
+                    url=(
+                        f"https://www.youtube.com/watch?v={video_id}"
+                        if video_id
+                        else None
+                    ),
                     published_at=_parse_datetime(snippet.get("publishedAt")),
                     metadata={"video_id": video_id, "statistics": statistics},
                 )
@@ -265,7 +267,9 @@ class RedditDiscussionsCollector(HttpTrendCollector):
                     continue
 
                 inferred_category = _infer_category(title, fallback=subreddit.lower())
-                if category and not _category_matches(inferred_category, category, title):
+                if category and not _category_matches(
+                    inferred_category, category, title
+                ):
                     continue
 
                 score = _safe_float(data.get("score"))

@@ -84,9 +84,11 @@ class LearningAgent:
                 raise LearningAgentError(
                     "analytics_repository is required when samples are not provided."
                 )
-            analytics_records = await self.analytics_repository.list_recent_with_content(
-                days=request.lookback_days,
-                limit=request.max_samples,
+            analytics_records = (
+                await self.analytics_repository.list_recent_with_content(
+                    days=request.lookback_days,
+                    limit=request.max_samples,
+                )
             )
             samples = [sample_from_analytics(record) for record in analytics_records]
 
@@ -183,16 +185,17 @@ class LearningAgent:
     ) -> str:
         assert self.learning_repository is not None
         links = _links_from_evidence(payload.get("evidence") or [])
-        feedback = await self.learning_repository.create(
-            feedback_type=feedback_type,
-            signal=signal_name,
-            score=_decimal_score(score),
-            notes=payload.get("recommendation") or "",
-            recommendations=payload,
-            model_version=model_version,
-            reviewed_at=datetime.now(UTC),
-            **links,
-        )
+        feedback_data: dict[str, Any] = {
+            "feedback_type": feedback_type,
+            "signal": signal_name,
+            "score": _decimal_score(score),
+            "notes": payload.get("recommendation") or "",
+            "recommendations": payload,
+            "model_version": model_version,
+            "reviewed_at": datetime.now(UTC),
+        }
+        feedback_data.update(links)
+        feedback = await self.learning_repository.create(feedback_data)
         return str(feedback.id)
 
 
@@ -249,14 +252,21 @@ def _latest_upload(uploads: list[Upload]) -> Upload | None:
         return None
     return max(
         uploads,
-        key=lambda upload: upload.uploaded_at or upload.created_at or datetime.min.replace(tzinfo=UTC),
+        key=lambda upload: upload.uploaded_at
+        or upload.created_at
+        or datetime.min.replace(tzinfo=UTC),
     )
 
 
 def _merged_metadata(video: Video, script: Script | None) -> dict[str, Any]:
     metadata = dict(video.extra_metadata or {})
     if script is not None:
-        metadata.update({f"script_{key}": value for key, value in (script.extra_metadata or {}).items()})
+        metadata.update(
+            {
+                f"script_{key}": value
+                for key, value in (script.extra_metadata or {}).items()
+            }
+        )
     return metadata
 
 
@@ -267,7 +277,9 @@ def _analytics_metrics(analytics: Analytics) -> dict[str, float]:
         "comments": float(analytics.comments or 0),
         "shares": float(analytics.shares or 0),
         "watch_time_seconds": float(analytics.watch_time_seconds or 0),
-        "average_view_duration_seconds": _float_or_zero(analytics.average_view_duration_seconds),
+        "average_view_duration_seconds": _float_or_zero(
+            analytics.average_view_duration_seconds
+        ),
         "retention_rate": _float_or_zero(analytics.retention_rate),
         "click_through_rate": _float_or_zero(analytics.click_through_rate),
         "subscribers_gained": float(analytics.subscribers_gained or 0),

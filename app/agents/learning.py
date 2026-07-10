@@ -195,7 +195,7 @@ class LearningAgent:
             "reviewed_at": datetime.now(UTC),
         }
         feedback_data.update(links)
-        feedback = await self.learning_repository.create(feedback_data)
+        feedback = await self.learning_repository.create(**feedback_data)
         return str(feedback.id)
 
 

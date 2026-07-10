@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from datetime import date, timedelta
 from decimal import Decimal
-from typing import Protocol
+from typing import Any, Protocol
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -211,7 +211,7 @@ class AnalyticsAgent:
             snapshot.snapshot_date,
             UploadPlatform.YOUTUBE_SHORTS,
         )
-        values = {
+        values: dict[str, Any] = {
             "upload_id": upload.id,
             "views": snapshot.views,
             "likes": snapshot.likes,
@@ -232,16 +232,14 @@ class AnalyticsAgent:
         }
         if existing is None:
             record = await self.analytics_repository.create(
-                {
-                    "video_id": upload.video_id,
-                    "platform": UploadPlatform.YOUTUBE_SHORTS,
-                    "snapshot_date": snapshot.snapshot_date,
-                    **values,
-                }
+                video_id=upload.video_id,
+                platform=UploadPlatform.YOUTUBE_SHORTS,
+                snapshot_date=snapshot.snapshot_date,
+                **values,
             )
             created = True
         else:
-            record = await self.analytics_repository.update(existing, values)
+            record = await self.analytics_repository.update(existing, **values)
             created = False
 
         return StoredAnalyticsSnapshot(

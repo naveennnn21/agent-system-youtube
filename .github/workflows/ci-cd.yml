@@ -80,6 +80,10 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Enable corepack
+        run: corepack enable
+        working-directory: .
+
       - uses: actions/setup-node@v4
         with:
           node-version: "22"
@@ -87,10 +91,10 @@ jobs:
           cache-dependency-path: frontend/pnpm-lock.yaml
 
       - name: Install frontend dependencies
-        run: corepack pnpm install --frozen-lockfile
+        run: pnpm install --frozen-lockfile
 
       - name: Build dashboard
-        run: corepack pnpm run build
+        run: pnpm run build
 
   docker-images:
     name: Build and push Docker images

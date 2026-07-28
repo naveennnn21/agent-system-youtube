@@ -25,13 +25,9 @@ ENV PATH="/opt/venv/bin:$PATH"
 
 # Install Python dependencies (layer cached unless requirements.txt changes)
 COPY requirements.txt .
-RUN --mount=type=cache,target=/root/.cache/pip \
-    python -m pip install --upgrade pip setuptools wheel && \
-    for attempt in 1 2 3; do \
-        python -m pip install --prefer-binary -r requirements.txt && break; \
-        if [ "$attempt" = "3" ]; then exit 1; fi; \
-        sleep 5; \
-    done
+
+RUN python -m pip install --upgrade pip setuptools wheel && \
+    python -m pip install --no-cache-dir --prefer-binary -r requirements.txt
 
 # ---------------------------------------------------------------------------
 # Stage 2 — Runtime

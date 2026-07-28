@@ -3,6 +3,9 @@ Health-check endpoints.
 
 * ``GET /health``       — lightweight liveness probe.
 * ``GET /health/ready``  — deep readiness probe (DB + Redis).
+
+These endpoints are exempt from rate limiting so that load balancers
+and orchestrators can always reach them.
 """
 
 from __future__ import annotations
@@ -10,7 +13,9 @@ from __future__ import annotations
 import logging
 from datetime import datetime, timezone
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Request
+from slowapi import Limiter
+from slowapi.util import get_remote_address
 from sqlalchemy import text
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -21,12 +26,17 @@ logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/health", tags=["health"])
 
+# ── Rate-limit exemption ────────────────────────────────────────────
+# Health probes must never be blocked by rate limiting.
+limiter = Limiter(key_func=get_remote_address)
+
 
 # ── Liveness ─────────────────────────────────────────────────────────
 
 
 @router.get("")
-async def health() -> dict:
+@limiter.exempt
+async def health(request: Request) -> dict:
     """Lightweight liveness probe — always returns 200 if the process is up."""
     return {
         "status": "healthy",
@@ -60,7 +70,9 @@ async def _check_redis(manager: RedisManager) -> dict:
 
 
 @router.get("/ready")
+@limiter.exempt
 async def readiness(
+    request: Request,
     session: AsyncSession = Depends(get_db),
 ) -> dict:
     """Deep readiness probe that checks every dependency.

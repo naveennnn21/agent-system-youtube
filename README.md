@@ -212,3 +212,8 @@ git push origin feat/my-feature
 ## 📄 License
 
 This project is licensed under the **MIT License**.
+
+| `RATE_LIMIT_ENABLED`      | Enable API rate limiting                         | `true`                                    |
+| `RATE_LIMIT_DEFAULT`      | Default rate limit for all endpoints             | `60/minute`                               |
+| `RATE_LIMIT_AUTOMATION`   | Rate limit for automation endpoints              | `10/minute`                               |
+| `RATE_LIMIT_ANALYTICS`    | Rate limit for analytics endpoints               | `20/minute`                               |

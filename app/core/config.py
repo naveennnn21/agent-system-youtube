@@ -190,7 +190,13 @@ class Settings(BaseSettings):
     LOG_LEVEL: str = "DEBUG"
 
     # -- CORS ------------------------------------------------------------------
-    CORS_ORIGINS: list[str] = ["*"]
+    CORS_ORIGINS: list[str] = ["http://localhost:3000", "http://localhost:5173"]
+
+    # -- Rate Limiting ---------------------------------------------------------
+    RATE_LIMIT_ENABLED: bool = True
+    RATE_LIMIT_DEFAULT: str = "60/minute"
+    RATE_LIMIT_AUTOMATION: str = "10/minute"
+    RATE_LIMIT_ANALYTICS: str = "20/minute"
 
     # -- Celery ----------------------------------------------------------------
     CELERY_BROKER_URL: str = "redis://redis:6379/1"
